@@ -9,7 +9,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-p <postfix]
+USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v 3.0 | 4.0 ]
 
 Create the tODE client image. Used for running pharo-based scripts
 and for running the tODE client UI.
@@ -26,11 +26,14 @@ OPTIONS
   -p <postfix>
      Append <postfix> to end of image name. Useful for creating
      multiple tode client images.
+  -v 3.0 | 4.0
+     Choose the version of Pharo to use for the client. Default is 3.0.
 
 EXAMPLES
   $(basename $0) -h
   $(basename $0) -p _0
   $(basename $0) -f
+  $(basename $0) -v 3.0
   $(basename $0)
 
 HELP
@@ -50,19 +53,21 @@ fi
 
 postFix=""
 force=""
+version="3.0"
 while getopts ":fhp:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
     p) postFix="${OPTARG}";;
     ?) postFix="";;          # handle optional -p argument "
+    v) version="${OPTARG}";;
     *) usage; exit 1;;
   esac
 done
 shift $(($OPTIND - 1))
 
-if [ ! -e "$GS_HOME/pharo/pharo" ]; then
-  $GS_HOME/bin/installPharo
+if [ ! -e "$GS_TODE_CLIENT/pharo/pharo" ]; then
+  $GS_TODE_CLIENT/bin/downloadPharo -v $version
 fi
 
 pharo=$GS_HOME/pharo

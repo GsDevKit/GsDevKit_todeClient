@@ -35,7 +35,7 @@ version="3.0"
 while getopts ":hv:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
-    p) version="${OPTARG}";;
+    v) version="${OPTARG}";;
    *) usage; exit 1;;
   esac
 done
@@ -50,18 +50,19 @@ if [ -e "$GS_TODE_CLIENT/pharo/pharo-vm" ]; then
   exit 0
 fi
 
-# Look for wget to download Pharo
-if [ -e "`which wget`" ]; then
-    cmd="`which wget`"
-else
-    echo "[Error] wget is not available. Install wget and rerun this script."
-    exit 1
-fi
-
 # Download Pharo
-
-cd $GS_TODE_CLIENT/pharo
-wget -O- get.pharo.org/vm30 | bash
-wget -O- get.pharo.org/30 | bash
+pushd $GS_TODE_CLIENT/pharo >& /dev/null
+case $version in
+  3.0)
+    wget -O- get.pharo.org/vm30 | bash
+    wget -O- get.pharo.org/30 | bash
+    ;;
+  4.0)
+    wget -O- get.pharo.org/vm40 | bash
+    wget -O- get.pharo.org/40 | bash
+    ;;
+  *) usage; exit 1;;
+esac
+popd >& /dev/null
 
 echo "...finished $(basename $0)"
