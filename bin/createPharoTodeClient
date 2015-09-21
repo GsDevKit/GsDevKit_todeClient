@@ -77,7 +77,7 @@ if [ "${directoryPath}x" = "x" ]; then
 fi
 
 if [ ! -e "$GS_TODE_CLIENT/pharo/pharo" ]; then
-  $GS_TODE_CLIENT/bin/downloadSmalltalkClient -v $version -d $directoryPath
+  $GS_HOME/bin/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
 message="create"
