@@ -9,13 +9,14 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v Pharo3.0 | Pharo4.0 ]
+USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v Pharo3.0 | Pharo4.0 ] 
+                      <client-name>
 
-Create the tODE client image. Used for running pharo-based scripts
-and for running the tODE client UI.
+Create a tODE client image of the given name. Used for running pharo-based 
+scripts and for running the tODE client UI.
 
-If the tODE client image already exists, the installation is skipped
-unless the -f option is specified.
+If a tODE client with the given <client-name> already exists, the installation 
+is skipped unless the -f option is specified.
 
 OPTIONS
   -h 
@@ -31,10 +32,10 @@ OPTIONS
 
 EXAMPLES
   $(basename $0) -h
-  $(basename $0) -p _0
-  $(basename $0) -f
-  $(basename $0) -v Pharo3.0
-  $(basename $0)
+  $(basename $0) -p _0 todeDev
+  $(basename $0) -f todeDev
+  $(basename $0) -v Pharo3.0 todeDev
+  $(basename $0) todeDev
 
 HELP
 }
@@ -65,9 +66,13 @@ while getopts ":fhp:" OPT ; do
   esac
 done
 shift $(($OPTIND - 1))
+if [ $# -lt 1 ]; then
+  usage; exit 1
+fi
+clientName=$1
 
 case $version in
-  Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg $versionArg -d $GS_TODE_CLIENT/client;;
+  Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg $versionArg $clientName;;
   *) usage; exit1;;
 esac
 
