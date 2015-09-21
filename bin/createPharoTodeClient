@@ -12,7 +12,7 @@ usage() {
 USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v Pharo3.0 | Pharo4.0 ]
                       <client-name>
 
-Create the tODE client image. Used for running pharo-based scripts
+Create a tODE client of the given name. Used for running pharo-based scripts
 and for running the tODE client UI.
 
 If the tODE client image already exists, the installation is skipped
@@ -35,9 +35,9 @@ OPTIONS
 
 EXAMPLES
   $(basename $0) -h
-  $(basename $0) -p _0
-  $(basename $0) -f
-  $(basename $0) -v Pharo3.0
+  $(basename $0) -p _0 todeDev
+  $(basename $0) -f todeDev
+  $(basename $0) -v Pharo3.0 todeDev
   $(basename $0)
 
 HELP
@@ -55,14 +55,12 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
   exit 1
 fi
 
-directoryPath=""
 postFix=""
 force=""
 version="Pharo3.0"
 while getopts ":fhp:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
-    d) directoryPath="${OPTARG}";;
     f) force="true";;
     p) postFix="${OPTARG}";;
     ?) postFix="";;          # handle optional -p argument "
@@ -71,12 +69,15 @@ while getopts ":fhp:" OPT ; do
   esac
 done
 shift $(($OPTIND - 1))
-
-if [ "${directoryPath}x" = "x" ]; then
+if [ $# -lt 1 ]; then
   usage; exit 1
 fi
+clientName=$1
+directoryPath=$GS_GS_CLIENT_DEV/clients/$clientName
 
-if [ ! -e "$GS_TODE_CLIENT/pharo/pharo" ]; then
+if [ ! -d "$directoryPath" ] ; then
+  mkdir $directoryPath
+  cp -r $GS_TODE_CLIENT/template/* $directoryPath/
   $GS_HOME/bin/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
@@ -89,7 +90,6 @@ if [ -e $directoryPath/todeClient${postFix}.image ] ; then
     message="update"
   fi
 fi
-
 
 todeLoadPath=$GS_GEMSTONE/tode/sys/default/pharo/todeLoad.st
 if [ -e $GS_GEMSTONE/tode/sys/local/pharo/todeLoad.st ] ; then

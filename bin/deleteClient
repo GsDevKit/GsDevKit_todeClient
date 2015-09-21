@@ -9,7 +9,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] 
+USAGE: $(basename $0) [-h] <client-name>
 Clean up the GS_TODE_CLIENT/client directory, to make it suitable for
 re-installing a fresh version of the client.
  
@@ -30,12 +30,16 @@ if [ "${GS_HOME}x" = "x" ] ; then
   exit 1
 fi
 source ${GS_HOME}/bin/defGsDevKit.env
-if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
-  echo "the GsDevKit_todeClient project has not been installed correctly or the"
-  echo "GS_TODE_CLIENT environment variable has not been defined"
+if [ "${GS_GS_CLIENT_DEV}x" = "x" ] ; then
+  echo "the GS_GS_CLIENT_DEV environment variable needs to be defined"
   exit 1
 fi
 
-rm -rf github-cache package-cache pharo pharo-ui pharo-vm *.image *.changes *.zip *.log *.dmp
+if [ $# -lt 1 ]; then
+  usage; exit 1
+fi
+clientName=$1
+
+rm -rf $GS_GS_CLIENT_DEV/clients/$clientName
 
 echo "...finished $(basename $0)"
