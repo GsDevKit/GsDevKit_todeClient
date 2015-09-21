@@ -27,7 +27,7 @@ OPTIONS
      Append <postfix> to end of image name. Useful for creating
      multiple tode client images.
   -v Pharo3.0 | Pharo4.0
-     Choose the version of Pharo to use for the client. Default is Pharo3.0.
+     Choose the version of Smalltalk to use for the client. Default is Pharo3.0.
 
 EXAMPLES
   $(basename $0) -h
@@ -51,55 +51,24 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
   exit 1
 fi
 
-postFix=""
-force=""
-version="Pharo3.0"
+postFixArg=""
+forceArg=""
+versionArg=" -v Pharo3.0 "
 while getopts ":fhp:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
-    f) force="true";;
-    p) postFix="${OPTARG}";;
-    ?) postFix="";;          # handle optional -p argument "
-    v) version="${OPTARG}";;
+    f) forceArg=" -f ";;
+    p) postFixArg=" -p ${OPTARG} ";;
+    ?) postFixArg=" -p ";;          # handle optional -p argument "
+    v) versionArg=" -v ${OPTARG} ";;
     *) usage; exit 1;;
   esac
 done
 shift $(($OPTIND - 1))
 
+case $version in
+  Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg $versionArg -d $GS_TODE_CLIENT/client;;
+  *) usage; exit1;;
+esac
 
-if [ ! -e "$GS_TODE_CLIENT/pharo/pharo" ]; then
-  $GS_TODE_CLIENT/bin/downloadClient -v $version
-fi
-
-pharo=$GS_HOME/pharo
-message="create"
-if [ -e $pharo/todeClient${postFix}.image ] ; then
-  if [ "${force}x" = "x" ] ; then
-    echo "todeClient already created, use -f to force update"
-    exit 0
-  else
-    message="update"
-  fi
-fi
-
-
-todeLoadPath=$GS_HOME/tode/sys/default/pharo/todeLoad.st
-if [ -e $GS_HOME/tode/sys/local/pharo/todeLoad.st ] ; then
-  todeLoadPath=$GS_HOME/tode/sys/local/pharo/todeLoad.st
-fi
-
-echo "${message} todeClient${postFix} image using $todeLoadPath"
-
-if [ "${force}" = "true" ] ; then
-  $pharo/pharo $pharo/todeClient${postFix}.image save todeClientTmp
-else
-  $pharo/pharo $pharo/Pharo.image save todeClientTmp
-fi
-
-$pharo/pharo $pharo/todeClientTmp.image st --quit --save $todeLoadPath
-
-$pharo/pharo $pharo/todeClientTmp.image save todeClient${postFix}
-rm -f $pharo/todeClientTmp.*
-
-echo
 echo "...finished $(basename $0)"

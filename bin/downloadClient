@@ -9,18 +9,23 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-v Pharo3.0 | Pharo4.0 ]
+USAGE: $(basename $0) [-h] [-v Pharo3.0 | Pharo4.0 ] -d <full-path-to-directory>
 
-Download and install a Linux or Mac or Pharo3.0 VM, image and changes file.
+Download a Linux or Mac VM, image. and changes file.
 
 OPTIONS
   -h
      display help
-  -v 3.0 | 4.0
-     Choose the version of Pharo to use for the client. Default is 3.0.
+  -d <full-path-to-directory>
+     <full-path-to-directory> specifies the directory into which the chosen
+     pharo version is downloaded
+  -v Pharo3.0 | Pharo4.0
+     Choose the version of Smalltalk to use for the client. Default is 
+     Pharo3.0.
 
 EXAMPLES
   $(basename $0) -h
+  $(basename $0) -v Pharo3.0
   $(basename $0)
 
 HELP
@@ -31,10 +36,12 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
   echo "the GS_TODE_CLIENT environment variable needs to be defined"; exit 1
 fi
 
+directoryPath=""
 version="Pharo3.0"
-while getopts ":hv:" OPT ; do
+while getopts ":hd:v:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
+    d) directoryPath="${OPTARG}";;
     v) version="${OPTARG}";;
    *) usage; exit 1;;
   esac
@@ -43,6 +50,10 @@ shift $(($OPTIND - 1))
 if [ $# -ne 0 ]; then
   usage; exit 1
 fi
+if [ "${directoryPath}x" = "x" ]; then
+  usage; exit 1
+fi
+
 echo "Installing $version"
 
 
@@ -50,11 +61,11 @@ echo "Installing $version"
 
 case $version in
   Pharo*)
-    if [ -e "$GS_TODE_CLIENT/pharo/pharo-vm" ]; then
-      echo "Pharo already installed. To reinstall delete pharo directory and try again."
+    if [ -e "$directoryPath/pharo-vm" ]; then
+      echo "Pharo already installed. To reinstall run $GS_TODE_CLIENT/bin/deleteClientInstall and try again."
       exit 0
     fi
-    pushd $GS_TODE_CLIENT/pharo >& /dev/null
+    pushd $directoryPath >& /dev/null
     case $version in
       Pharo3.0)
         wget -O- get.pharo.org/vm30 | bash

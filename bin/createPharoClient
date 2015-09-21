@@ -1,0 +1,113 @@
+#! /bin/bash
+#=========================================================================
+# Copyright (c) 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#=========================================================================
+
+echo "================="
+echo "   GsDevKit script: $(basename $0) $*"
+echo "================="
+
+usage() {
+  cat <<HELP
+USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v Pharo3.0 | Pharo4.0 ]
+                      -d <full-path-to-directory>
+
+Create the tODE client image. Used for running pharo-based scripts
+and for running the tODE client UI.
+
+If the tODE client image already exists, the installation is skipped
+unless the -f option is specified.
+
+OPTIONS
+  -h 
+     display help
+  -d <full-path-to-directory>
+     <full-path-to-directory> specifies the directory into which the chosen
+     pharo version is downloaded
+  -f
+     Force tODE client installation, whether or not the image
+     already exists.
+  -p <postfix>
+     Append <postfix> to end of image name. Useful for creating
+     multiple tode client images.
+  -v Pharo3.0 | Pharo4.0
+     Choose the version of Pharo to use for the client. Default is Pharo3.0.
+
+EXAMPLES
+  $(basename $0) -h
+  $(basename $0) -p _0
+  $(basename $0) -f
+  $(basename $0) -v Pharo3.0
+  $(basename $0)
+
+HELP
+}
+
+set -e # exit on error
+if [ "${GS_HOME}x" = "x" ] ; then
+  echo "the GS_HOME environment variable needs to be defined"
+  exit 1
+fi
+source ${GS_HOME}/bin/defGsDevKit.env
+if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
+  echo "the GsDevKit_todeClient project has not been installed correctly or the"
+  echo "GS_TODE_CLIENT environment variable has not been defined"
+  exit 1
+fi
+
+directoryPath=""
+postFix=""
+force=""
+version="Pharo3.0"
+while getopts ":fhp:" OPT ; do
+  case "$OPT" in
+    h) usage; exit 0;;
+    d) directoryPath="${OPTARG}";;
+    f) force="true";;
+    p) postFix="${OPTARG}";;
+    ?) postFix="";;          # handle optional -p argument "
+    v) version="${OPTARG}";;
+    *) usage; exit 1;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ "${directoryPath}x" = "x" ]; then
+  usage; exit 1
+fi
+
+if [ ! -e "$GS_TODE_CLIENT/pharo/pharo" ]; then
+  $GS_TODE_CLIENT/bin/downloadClient -v $version -d $directoryPath
+fi
+
+message="create"
+if [ -e $directoryPath/todeClient${postFix}.image ] ; then
+  if [ "${force}x" = "x" ] ; then
+    echo "todeClient image already created, use -f to force update"
+    exit 0
+  else
+    message="update"
+  fi
+fi
+
+
+todeLoadPath=$GS_GEMSTONE/tode/sys/default/pharo/todeLoad.st
+if [ -e $GS_GEMSTONE/tode/sys/local/pharo/todeLoad.st ] ; then
+  todeLoadPath=$GS_GEMSTONE/tode/sys/local/pharo/todeLoad.st
+fi
+
+echo "${message} todeClient${postFix} image using $todeLoadPath"
+
+if [ "${force}" = "true" ] ; then
+  $directoryPath/pharo $directoryPath/todeClient${postFix}.image save todeClientTmp
+else
+  $directoryPath/pharo $directoryPath/Pharo.image save todeClientTmp
+fi
+
+$directoryPath/pharo $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
+
+$directoryPath/pharo $directoryPath/todeClientTmp.image save todeClient${postFix}
+rm -f $directoryPath/todeClientTmp.*
+
+echo
+echo "...finished $(basename $0)"
