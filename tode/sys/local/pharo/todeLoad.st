@@ -16,6 +16,7 @@
       cls
         siteUsername: '';
         sitePassword: ''] ].
+  Smalltalk snapshot: true andQuit: false. "for debugging"
   Metacello new
     baseline: 'Tode';
     repository: 'filetree:///opt/git/tode/repository';
