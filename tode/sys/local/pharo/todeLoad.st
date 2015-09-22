@@ -18,7 +18,7 @@
         sitePassword: ''] ].
   Metacello new
     baseline: 'Tode';
-    repository: 'github://dalehenrich/tode:master/repository';
+    repository: 'filetree:///opt/git/tode/repository';
     get;
     load ]
       on: Warning, MetacelloSkipDirtyPackageLoad
