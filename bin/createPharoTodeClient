@@ -78,7 +78,7 @@ directoryPath=$GS_GS_CLIENT_DEV/clients/$clientName
 if [ ! -d "$directoryPath" ] ; then
   mkdir $directoryPath
   cp -r $GS_TODE_CLIENT/template/* $directoryPath/
-  $GS_HOME/bin/downloadSmalltalkClient -v $version -d $directoryPath
+  $GS_HOME/bin/private/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
 message="create"
