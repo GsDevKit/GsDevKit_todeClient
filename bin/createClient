@@ -54,14 +54,14 @@ fi
 
 postFixArg=""
 forceArg=""
-versionArg=" -v Pharo3.0 "
+version="Pharo3.0"
 while getopts ":fhp:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
     p) postFixArg=" -p ${OPTARG} ";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
-    v) versionArg=" -v ${OPTARG} ";;
+    v) version="${OPTARG}";;
     *) usage; exit 1;;
   esac
 done
@@ -71,8 +71,8 @@ if [ $# -lt 1 ]; then
 fi
 clientName=$1
 
-case $versionArg in
-  Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg $versionArg $clientName;;
+case $version in
+  Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg -v $version $clientName;;
   *) usage; exit 1;;
 esac
 
