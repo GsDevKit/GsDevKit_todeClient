@@ -9,7 +9,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-p <postfix>] <client-name>
+USAGE: $(basename $0) [-h] [-f] [-p <postfix>] <client-name>
 
 Launch todeClient image.
 
