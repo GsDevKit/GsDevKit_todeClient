@@ -1,7 +1,5 @@
 [ 
-  "Master pharo todeLoad.st"
-  | gs_tode_repository |
-  gs_tode_repository := Smalltalk os environment at: 'GS_TODE_REPOSITORY'.
+  "todeClient pharo todeLoad.st"
   Metacello new
     baseline: 'Metacello';
     repository: 'github://dalehenrich/metacello-work:master/repository';
@@ -18,14 +16,9 @@
       cls
         siteUsername: '';
         sitePassword: ''] ].
-  "If tODE is already loaded, clear github cache for baseline"
-  Metacello image
-    baseline: 'Tode';
-    get.
   Metacello new
-    configuration: 'TodeClient';
-    version: #dev_home;
-    repository: 'filetree://', gs_tode_repository;
+    baseline: 'Tode';
+    repository: 'github://dalehenrich/tode:dev_dev/repository';
     get;
     load ]
       on: Warning, MetacelloSkipDirtyPackageLoad
