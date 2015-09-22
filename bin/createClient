@@ -73,7 +73,7 @@ clientName=$1
 
 case $version in
   Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg $versionArg $clientName;;
-  *) usage; exit1;;
+  *) usage; exit 1;;
 esac
 
 echo "...finished $(basename $0)"
