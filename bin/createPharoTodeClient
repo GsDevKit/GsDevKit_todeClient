@@ -92,9 +92,9 @@ if [ -e $directoryPath/todeClient${postFix}.image ] ; then
   fi
 fi
 
-todeLoadPath=$GS_TODE_CLIENT/tode/sys/default/pharo/todeLoad.st
-if [ -e $GS_TODE_CLIENT/tode/sys/local/pharo/todeLoad.st ] ; then
-  todeLoadPath=$GS_TODE_CLIENT/tode/sys/local/pharo/todeLoad.st
+todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/todeLoad.st
+if [ -e $GS_SHARED_TODE/sys/local/pharo/todeLoad.st ] ; then
+  todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/todeLoad.st
 fi
 
 echo "${message} todeClient${postFix} image using $todeLoadPath"
