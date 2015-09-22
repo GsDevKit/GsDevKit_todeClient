@@ -58,7 +58,7 @@ fi
 postFix=""
 force=""
 version="Pharo3.0"
-while getopts ":fhp:" OPT ; do
+while getopts ":fhp:v:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
