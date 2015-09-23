@@ -72,7 +72,9 @@ fi
 clientName=$1
 
 case $version in
-  Pharo*) $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg -v $version $clientName;;
+  Pharo*) 
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg -v $version $clientName
+    ;;
   *) usage; exit 1;;
 esac
 

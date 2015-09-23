@@ -107,5 +107,18 @@ $directoryPath/pharo $directoryPath/todeClientTmp.image st --quit --save $todeLo
 $directoryPath/pharo $directoryPath/todeClientTmp.image save todeClient${postFix}
 rm -f $directoryPath/todeClientTmp.*
 
+pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
+
+  for productName in $(find . -type d -maxdepth 1)
+  do
+    if [ "$productName" != "README.md" ] ; then 
+      vers=`echo "productName" | cut -d'-' -f1 ./in | cut -c16-`
+      echo "$productName --> $vers"
+      ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
+    fi
+  done
+
+popd >& /dev/null
+
 echo
 echo "...finished $(basename $0)"
