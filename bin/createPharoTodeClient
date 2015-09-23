@@ -109,9 +109,12 @@ rm -f $directoryPath/todeClientTmp.*
 
 pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
 
+  echo ""
   for productName in $(find . -maxdepth 1 -type d )
   do
-    if [ "$productName" != "README.md" ] ; then 
+    echo "$productName"
+
+    if [ $productName == GemStone64Bit* ] ; then 
       vers=`echo "productName" | cut -d'-' -f1 | cut -c16-`
       echo "$productName --> $vers"
       ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
