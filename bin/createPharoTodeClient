@@ -109,10 +109,10 @@ rm -f $directoryPath/todeClientTmp.*
 
 pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
 
-  for productName in $(find . -type d -maxdepth 1)
+  for productName in $(find . -maxdepth 1 -type d )
   do
     if [ "$productName" != "README.md" ] ; then 
-      vers=`echo "productName" | cut -d'-' -f1 ./in | cut -c16-`
+      vers=`echo "productName" | cut -d'-' -f1 | cut -c16-`
       echo "$productName --> $vers"
       ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
     fi
