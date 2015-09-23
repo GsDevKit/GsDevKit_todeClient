@@ -21,9 +21,6 @@ unless the -f option is specified.
 OPTIONS
   -h 
      display help
-  -d <full-path-to-directory>
-     <full-path-to-directory> specifies the directory into which the chosen
-     pharo version is downloaded
   -f
      Force tODE client installation, whether or not the image
      already exists.
