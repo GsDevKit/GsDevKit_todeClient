@@ -115,7 +115,7 @@ pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
     echo "$productName"
 
     if [ $productName == ./GemStone64Bit* ] ; then 
-      vers=`echo "productName" | cut -d'-' -f1 | cut -c16-`
+      vers=`echo "$productName" | cut -d'-' -f1 | cut -c16-`
       echo "$productName --> $vers"
       ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
     fi
