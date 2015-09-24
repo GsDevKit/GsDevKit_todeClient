@@ -105,7 +105,7 @@ fi
 $directoryPath/pharo $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
 $directoryPath/pharo $directoryPath/todeClientTmp.image save todeClient${postFix}
-rm -f $directoryPath/todeClientTmp.*
+rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
 
 pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
 
@@ -114,7 +114,7 @@ pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
   do
     echo "$productName"
 
-    if [ $productName == GemStone64Bit* ] ; then 
+    if [ $productName == ./GemStone64Bit* ] ; then 
       vers=`echo "productName" | cut -d'-' -f1 | cut -c16-`
       echo "$productName --> $vers"
       ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
