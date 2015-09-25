@@ -89,10 +89,23 @@ if [ -e $directoryPath/todeClient${postFix}.image ] ; then
   fi
 fi
 
-todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/todeLoad.st
-if [ -e $GS_SHARED_TODE/sys/local/pharo/todeLoad.st ] ; then
-  todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/todeLoad.st
-fi
+# Detect operating system
+PLATFORM="`uname -sm | tr ' ' '-'`"
+
+case "$PLATFORM" in
+  MINGW32_NT*)
+    todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/windows/todeLoad.st
+    if [ -e $GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st ] ; then
+      todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st
+    fi
+    ;;
+  *)
+    todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/todeLoad.st
+    if [ -e $GS_SHARED_TODE/sys/local/pharo/todeLoad.st ] ; then
+      todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/todeLoad.st
+    fi
+    ;;
+esac
 
 echo "${message} todeClient${postFix} image using $todeLoadPath"
 
