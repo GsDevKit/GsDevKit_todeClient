@@ -83,7 +83,6 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 # Macs with Core i7 use the same software as older Macs
 [ $PLATFORM = "Darwin-x86_64" ] && PLATFORM="Darwin-i386"
 
-vmArgs=""
 case "$PLATFORM" in
   Darwin-i386) pharoCmd="$scriptDir/pharo-ui " ;; 
   Linux-x86_64) pharoCmd="$scriptDir/pharo-ui --textenc UTF- 8" ;;

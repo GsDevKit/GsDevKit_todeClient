@@ -95,7 +95,7 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 
 case "$PLATFORM" in
   MINGW32_NT*)
-    pharoCmd="win_run_pharo $directoryPath "
+    pharoCmd="win_run_pharo $directoryPath --headless "
     todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/windows/todeLoad.st
     if [ -e $GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st ] ; then
       todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st
