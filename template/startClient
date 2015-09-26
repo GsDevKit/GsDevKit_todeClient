@@ -42,6 +42,7 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
   echo "GS_TODE_CLIENT environment variable has not been defined"
   exit 1
 fi
+source ${GS_TODE_CLIENT}/bin/winRunPharoFunctions
 
 scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 echo "     Pharo STDOUT routed to: ${scriptDir}/logs/todeClient${postFix}.log"
@@ -84,8 +85,9 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 
 vmArgs=""
 case "$PLATFORM" in
-  Darwin-i386) vmArgs="" ;;
-  Linux-x86_64) vmArgs=" --textenc UTF-8" ;;
+  Darwin-i386) pharoCmd="$scriptDir/pharo-ui " ;; 
+  Linux-x86_64) pharoCmd="$scriptDir/pharo-ui --textenc UTF- 8" ;;
+  MINGW32_NT*) pharoCmd="win_run_pharo $scriptDir " ;;
   *)
     echo "unsupported platform: $PLATFORM"
     exit 1
@@ -93,6 +95,6 @@ case "$PLATFORM" in
 esac
 
 unset GEMSTONE_NRS_ALL
-$scriptDir/pharo-ui $vmArgs $scriptDir/todeClient${postFix}.image &> $scriptDir/logs/todeClient${postFix}.log &
+$pharoCmd $scriptDir/todeClient${postFix}.image &> $scriptDir/logs/todeClient${postFix}.log &
 
 echo "...finished $(basename $0)"

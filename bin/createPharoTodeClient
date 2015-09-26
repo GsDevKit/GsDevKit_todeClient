@@ -39,16 +39,6 @@ EXAMPLES
 
 HELP
 }
-win_error_exit() {
-echo "Error on or near line $1"
-cat ${directoryPath}/stderr
-}
-win_run_pharo(){
-trap 'win_error_exit ${LINENO}' ERR
-$directoryPath/Pharo.exe --headless $*
-trap - ERR
-cat $directoryPath/stdout
-}
 
 set -e # exit on error
 if [ "${GS_HOME}x" = "x" ] ; then
@@ -61,6 +51,7 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
   echo "GS_TODE_CLIENT environment variable has not been defined"
   exit 1
 fi
+source ${GS_TODE_CLIENT}/bin/winRunPharoFunctions
 
 postFix=""
 force=""
@@ -104,14 +95,14 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 
 case "$PLATFORM" in
   MINGW32_NT*)
-    pharoCmd=win_run_pharo
+    pharoCmd="win_run_pharo $directoryPath "
     todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/windows/todeLoad.st
     if [ -e $GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st ] ; then
       todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st
     fi
     ;;
   *)
-    pharoCmd=$directoryPath/pharo
+    pharoCmd="$directoryPath/pharo "
     todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/todeLoad.st
     if [ -e $GS_SHARED_TODE/sys/local/pharo/todeLoad.st ] ; then
       todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/todeLoad.st
