@@ -94,12 +94,14 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 
 case "$PLATFORM" in
   MINGW32_NT*)
+    pharoCmd="$directoryPath/Pharo.exe --headless"
     todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/windows/todeLoad.st
     if [ -e $GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st ] ; then
       todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st
     fi
     ;;
   *)
+    pharoCmd=$directoryPath/pharo
     todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/todeLoad.st
     if [ -e $GS_SHARED_TODE/sys/local/pharo/todeLoad.st ] ; then
       todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/todeLoad.st
@@ -110,14 +112,14 @@ esac
 echo "${message} todeClient${postFix} image using $todeLoadPath"
 
 if [ "${force}" = "true" ] ; then
-  $directoryPath/pharo $directoryPath/todeClient${postFix}.image save todeClientTmp
+  $pharoCmd $directoryPath/todeClient${postFix}.image save todeClientTmp
 else
-  $directoryPath/pharo $directoryPath/Pharo.image save todeClientTmp
+  $pharoCmd $directoryPath/Pharo.image save todeClientTmp
 fi
 
-$directoryPath/pharo $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
+$pharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
-$directoryPath/pharo $directoryPath/todeClientTmp.image save todeClient${postFix}
+$pharoCmd $directoryPath/todeClientTmp.image save todeClient${postFix}
 rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
 
 pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
