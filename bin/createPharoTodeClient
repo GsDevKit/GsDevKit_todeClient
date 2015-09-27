@@ -81,14 +81,19 @@ if [ ! -d "$directoryPath" ] ; then
   $GS_HOME/bin/private/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
+targetImageBasename=todeClient${postFix}
+
 message="create"
-if [ -e $directoryPath/todeClient${postFix}.image ] ; then
+if [ -e $directoryPath/${targetImageBasename}.image ] ; then
   if [ "${force}x" = "x" ] ; then
     echo "todeClient image already created, use -f to force update"
     exit 0
   else
     message="update"
   fi
+else
+  # target image does not exist, so force is a noop
+  force="false"
 fi
 
 # Detect operating system
@@ -114,14 +119,15 @@ esac
 echo "${message} todeClient${postFix} image using $todeLoadPath"
 
 if [ "${force}" = "true" ] ; then
-  $pharoCmd $directoryPath/todeClient${postFix}.image save todeClientTmp
+  $pharoCmd $directoryPath/${targetImageBasename}.image save todeClientTmp
 else
   $pharoCmd $directoryPath/Pharo.image save todeClientTmp
 fi
 
 $pharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
-$pharoCmd $directoryPath/todeClientTmp.image save todeClient${postFix}
+$pharoCmd $directoryPath/todeClientTmp.image save $targetImageBasename
+
 rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
 
 pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
