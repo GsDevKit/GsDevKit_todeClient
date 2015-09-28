@@ -43,7 +43,7 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
   echo "GS_TODE_CLIENT environment variable has not been defined"
   exit 1
 fi
-source ${GS_TODE_CLIENT}/bin/winRunPharoFunctions
+source ${GS_TODE_CLIENT}/bin/private/winRunPharoFunctions
 
 scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 echo "     Pharo STDOUT routed to: ${scriptDir}/logs/todeClient${postFix}.log"
