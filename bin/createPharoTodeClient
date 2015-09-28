@@ -128,28 +128,9 @@ $pharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
 $pharoCmd $directoryPath/todeClientTmp.image save $targetImageBasename
 
+echo""
 rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
 
-pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
+$GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
 
-  echo ""
-  for productName in $(find . -maxdepth 1 -type d )
-  do
-    echo "$productName"
-
-    if [[ "$productName" == ./GemStone64Bit* ]] ; then 
-      vers=`echo "$productName" | cut -d'-' -f1 | cut -c16-`
-      echo "$productName --> $vers"
-      ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
-    fi
-    if [[ "$productName" == ./GemBuilderC* ]] ; then 
-      vers=`echo "$productName" | cut -d'-' -f1 | cut -c14-`
-      echo "$productName --> $vers"
-      ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
-    fi
-  done
-
-popd >& /dev/null
-
-echo
 echo "...finished $(basename $0)"
