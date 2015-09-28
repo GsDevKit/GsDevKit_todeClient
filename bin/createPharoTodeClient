@@ -142,6 +142,11 @@ pushd $GS_SHARED_DOWNLOADS/products >& /dev/null
       echo "$productName --> $vers"
       ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
     fi
+    if [ $productName == ./GemBuilderC* ] ; then 
+      vers=`echo "$productName" | cut -d'-' -f1 | cut -c14-`
+      echo "$productName --> $vers"
+      ${GS_HOME}/bin/private/installGci -d $directoryPath -t pharo $vers
+    fi
   done
 
 popd >& /dev/null
