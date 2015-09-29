@@ -47,4 +47,4 @@ shift $(($OPTIND - 1))
 
 clientName=$1
 
-echo "$clientName	- tODE client
+echo "  $clientName	- tODE client
