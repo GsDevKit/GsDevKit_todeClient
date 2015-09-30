@@ -47,14 +47,13 @@ echo "  $clientName	- tODE client"
 scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 pushd $scriptDir >& /dev/null
-  echo "	images:"
-  for fileName in $(find . -maxdepth 1 -type d)
+  echo "    images:"
+  for fileName in $(find . -type f)
   do
-    if [[ "$fileName" = "./todeClient*.image" ]] ; then
+    if [[ "$fileName" = ./todeClient*.image ]] ; then
       imageName=`echo "$fileName" | cut -c 3- | cut -d'.' -f1`
-      ${GS_GS_CLIENT_DEV_CLIENTS}/$clientName/clientInfo $clientName
+      echo "      $imageName"
     fi
   done
 
 popd >& /dev/null
-
