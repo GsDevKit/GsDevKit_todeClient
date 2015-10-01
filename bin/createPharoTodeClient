@@ -73,7 +73,7 @@ if [ $# -lt 1 ]; then
   usage; exit 1
 fi
 clientName=$1
-directoryPath=$GS_GS_CLIENT_DEV_CLIENTS/$clientName
+directoryPath=$GS_CLIENT_DEV_CLIENTS/$clientName
 
 if [ ! -d "$directoryPath" ] ; then
   mkdir $directoryPath

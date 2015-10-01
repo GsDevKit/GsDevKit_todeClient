@@ -31,8 +31,8 @@ if [ "${GS_HOME}x" = "x" ] ; then
   exit 1
 fi
 source ${GS_HOME}/bin/defGsDevKit.env
-if [ "${GS_GS_CLIENT_DEV}x" = "x" ] ; then
-  echo "the GS_GS_CLIENT_DEV environment variable needs to be defined"
+if [ "${GS_CLIENT_DEV}x" = "x" ] ; then
+  echo "the GS_CLIENT_DEV environment variable needs to be defined"
   exit 1
 fi
 
@@ -41,6 +41,6 @@ if [ $# -lt 1 ]; then
 fi
 clientName=$1
 
-rm -rf $GS_GS_CLIENT_DEV_CLIENTS/$clientName
+rm -rf $GS_CLIENT_DEV_CLIENTS/$clientName
 
 echo "...finished $(basename $0)"
