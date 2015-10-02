@@ -51,7 +51,7 @@ pushd $scriptDir >& /dev/null
   do
     if [[ "$fileName" = ./todeClient*.image ]] ; then
       imageName=`echo "$fileName" | cut -c 3-`
-      echo "		- $imageName"
+      echo "	  $imageName"
     fi
   done
 
