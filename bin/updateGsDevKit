@@ -1,0 +1,37 @@
+#! /bin/bash
+#=========================================================================
+# Copyright (c) 2014, 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#=========================================================================
+
+echo "================="
+echo "   GsDevKit script: $(basename $0) $*"
+echo "              path: $0"
+echo "================="
+
+usage() {
+  cat <<HELP
+USAGE: $(basename $0) [-h] <client-directory>
+
+OPTIONS
+  -h 
+     display help
+
+EXAMPLES
+  $(basename $0) -h
+  $(basename $0) 
+
+HELP
+}
+
+set -e # exit on error
+if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
+  echo "the GS_TODE_CLIENT environment variable needs to be defined"
+  exit 1
+fi
+source ${GS_HOME}/bin/defGsDevKit.env
+
+targetDir=$1
+
+cp -rf ${GS_TODE_CLIENT}/template/* $targetDir
+
+echo "...finished $(basename $0)"
