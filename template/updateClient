@@ -19,6 +19,7 @@ if [ $# -lt 1 ]; then
   echo "missing reguired argument <client-name>"; usage; exit 1
 fi
 clientName="$1"
+scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 pushd $scriptDir >& /dev/null
 
