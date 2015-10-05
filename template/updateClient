@@ -25,7 +25,7 @@ pushd $scriptDir >& /dev/null
 
   for imageName in $(find ./*.image -type f)
   do
-    if [[ "$imageName" != Pharo.image ]] ; then
+    if [[ "$imageName" != ./Pharo.image ]] ; then
       stripped=`echo "$imageName" | cut -c 13-`
       postfix=${stripped%.*}
       $GS_TODE_CLIENT/bin/createClient -t -f $clientName -p $postfix
