@@ -20,17 +20,15 @@ if [ $# -lt 1 ]; then
 fi
 clientName="$1"
 
-scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 pushd $scriptDir >& /dev/null
 
   for imageName in $(find ./*.image -type f)
   do
-    postfix=""
-    $GS_TODE_CLIENT/bin/createClient -f -p $postfix $clientName
+    stripped=`echo "$imageName" | cut -c 13-`
+    postfix=${stripped%.*}
+    $GS_TODE_CLIENT/bin/createClient -t -f $clientName -p $postfix
   done
 
 popd >& /dev/null
-
-
 
 echo "...finished $(basename $0)"
