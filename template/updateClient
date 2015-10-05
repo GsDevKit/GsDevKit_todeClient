@@ -32,7 +32,7 @@ pushd $scriptDir >& /dev/null
       if [ "${postfix}x" = "x" ] ; then
         posfixArg=""
       fi
-      $GS_TODE_CLIENT/bin/createClient -t -f $clientName -p $postfixArg
+      $GS_TODE_CLIENT/bin/createClient -t -f $clientName $postfixArg
     fi
   done
 
