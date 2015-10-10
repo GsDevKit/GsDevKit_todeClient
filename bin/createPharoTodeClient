@@ -102,16 +102,16 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 case "$PLATFORM" in
   MINGW32_NT*)
     pharoCmd="win_run_pharo $directoryPath --headless"
-    todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/windows/todeLoad.st
-    if [ -e $GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st ] ; then
-      todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/windows/todeLoad.st
+    todeLoadPath=$GS_SYS_DEFAULT/pharo/windows/todeLoad.st
+    if [ -e $GS_SYS_LOCAL/pharo/windows/todeLoad.st ] ; then
+      todeLoadPath=$GS_SYS_LOCAL/pharo/windows/todeLoad.st
     fi
     ;;
   *)
     pharoCmd="$directoryPath/pharo"
-    todeLoadPath=$GS_SHARED_TODE/sys/default/pharo/todeLoad.st
-    if [ -e $GS_SHARED_TODE/sys/local/pharo/todeLoad.st ] ; then
-      todeLoadPath=$GS_SHARED_TODE/sys/local/pharo/todeLoad.st
+    todeLoadPath=$GS_SYS_DEFAULT/pharo/todeLoad.st
+    if [ -e $GS_SYS_LOCAL/pharo/todeLoad.st ] ; then
+      todeLoadPath=$GS_SYS_LOCAL/pharo/todeLoad.st
     fi
     ;;
 esac
