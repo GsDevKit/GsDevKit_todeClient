@@ -78,6 +78,9 @@ directoryPath=$GS_CLIENT_DEV_CLIENTS/$clientName
 if [ ! -d "$directoryPath" ] ; then
   mkdir $directoryPath
   cp -r $GS_TODE_CLIENT/template/* $directoryPath/
+fi
+
+if [ ! -e "$directoryPath/Pharo.image" ] ; then
   $GS_HOME/bin/private/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
