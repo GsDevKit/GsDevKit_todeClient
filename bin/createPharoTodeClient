@@ -62,8 +62,8 @@ while getopts ":fhp:v:" OPT ; do
     h) usage; exit 0;;
     f) force="true";;
     p) postFix="${OPTARG}";;
-    ?) postFix="";;          # handle optional -p argument "
     v) version="${OPTARG}";;
+    ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
   esac
 done

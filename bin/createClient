@@ -56,13 +56,13 @@ fi
 postFixArg=""
 forceArg=""
 version="Pharo3.0"
-while getopts ":fhp:" OPT ; do
+while getopts ":fhp:v:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
     p) postFixArg=" -p ${OPTARG} ";;
-    ?) postFixArg=" -p ";;          # handle optional -p argument "
     v) version="${OPTARG}";;
+    ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
   esac
 done
