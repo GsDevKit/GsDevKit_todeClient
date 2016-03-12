@@ -87,7 +87,7 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 case "$PLATFORM" in
   Darwin-i386) pharoCmd="$scriptDir/pharo-ui " ;; 
   Linux-x86_64) pharoCmd="$scriptDir/pharo-ui --textenc UTF-8" ;;
-  MINGW32_NT*) pharoCmd="win_run_pharo $scriptDir " ;;
+  MSYS_NT*|MINGW32_NT*) pharoCmd="win_run_pharo $scriptDir " ;;
   *)
     echo "unsupported platform: $PLATFORM"
     exit 1
