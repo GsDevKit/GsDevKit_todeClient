@@ -10,33 +10,43 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v Pharo3.0 | Pharo4.0 ] 
+USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-t] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
+                      [-s <smalltalkCI-smalltalk.ston-path>]
                       <client-name>
 
-Create a tODE client image of the given name. Used for running pharo-based 
+Create a client image of the given name. Used for running pharo-based 
 scripts and for running the tODE client UI.
 
-If a tODE client with the given <client-name> already exists, the installation 
+If a client with the given <client-name> already exists, the installation 
 is skipped unless the -f option is specified.
 
 OPTIONS
   -h 
      display help
   -f
-     Force tODE client installation, whether or not the image
-     already exists.
+     Force client installation, whether or not the image already exists.
   -p <postfix>
      Append <postfix> to end of image name. Useful for creating
-     multiple tode client images.
-  -v Pharo3.0 | Pharo4.0
+     multiple client images.
+  -s <smalltalkCI-smalltalk.ston-path>
+     Path to SmalltalkCI smalltalk.ston file which contains the load and optional
+     tests instructions for creating the image
+  -t
+     Build a tODE client image
+  -v Pharo3.0 | Pharo4.0 | Pharo5.0
      Choose the version of Smalltalk to use for the client. Default is Pharo3.0.
 
 EXAMPLES
   $(basename $0) -h
-  $(basename $0) -p _0 todeDev
-  $(basename $0) -f todeDev
-  $(basename $0) -v Pharo3.0 todeDev
-  $(basename $0) todeDev
+  $(basename $0) -t -p _0 todeDev
+  $(basename $0) -f -t todeDev
+  $(basename $0) -t -v Pharo3.0 todeDev
+  $(basename $0) -t todeDev
+  $(basename $0) -v Pharo5.0 -s \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -f -v Pharo5.0 -s \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -v Pharo5.0 pharoClient
+  $(basename $0) pharoClient
+  $(basename $0) -p _0 pharoClient
 
 HELP
 }
@@ -56,11 +66,15 @@ fi
 postFixArg=""
 forceArg=""
 version="Pharo3.0"
-while getopts ":fhp:v:" OPT ; do
+todeArg=""
+smalltalkCIArg=""
+while getopts ":fhp:s:tv:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
     p) postFixArg=" -p ${OPTARG} ";;
+    t) todeArg=" -t ";;
+    s) smalltalkCIArg=" -s  ${OPTARG} ";;
     v) version="${OPTARG}";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
@@ -74,7 +88,7 @@ clientName=$1
 
 case $version in
   Pharo*) 
-    $GS_TODE_CLIENT/bin/createPharoTodeClient $forceArg $postFixArg -v $version $clientName
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIArg $forceArg $postFixArg -v $version $clientName
     ;;
   *) usage; exit 1;;
 esac
