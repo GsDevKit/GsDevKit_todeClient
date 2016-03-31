@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -x
 #=========================================================================
 # Copyright (c) 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
 #=========================================================================
@@ -162,10 +162,10 @@ else
 
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} client${postFix} image using $smalltalkCIPath"
-    $pharoCmd $directoryPath/clientTmp.image eval --save"
+    $pharoCmd $directoryPath/clientTmp.image eval --save "
       [ Metacello new
           baseline: 'SmalltalkCI';
-          repository: 'filetree://${GS_SHARED_REPO_SMALLTALKCI}/repository';
+          repository: '${GS_SHARED_REPO_SMALLTALKCI}';
           onConflict: [:ex | ex pass];
           load ] on: Warning do: [:w | w resume ].
       (Smalltalk at: #SmalltalkCI) runCIFor: '${smalltalkCIPath}'
