@@ -76,7 +76,7 @@ while getopts ":fhp:z:tv:" OPT ; do
     h) usage; exit 0;;
     f) force="true";;
     p) postFix="${OPTARG}";;
-    t) todeImage="${OPTARG}";;
+    t) todeImage="true";;
     s) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
@@ -135,7 +135,7 @@ case "$PLATFORM" in
     ;;
 esac
 
-if [ "${todeArg}" = "true" ] ; then
+if [ "${todeImage}" = "true" ] ; then
   echo "${message} todeClient${postFix} image using $todeLoadPath"
 
   if [ "${force}" = "true" ] ; then
