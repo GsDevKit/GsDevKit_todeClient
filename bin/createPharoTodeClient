@@ -168,7 +168,7 @@ else
           repository: '${GS_SHARED_REPO_SMALLTALKCI}';
           onConflict: [:ex | ex pass];
           load ] on: Warning do: [:w | w resume ].
-      (Smalltalk at: #SmalltalkCI) runCIFor: '${smalltalkCIPath}'
+      (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}'
     "
   else
     echo "${message} client${postFix} image"
