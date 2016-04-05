@@ -53,7 +53,7 @@ EXAMPLES
 HELP
 }
 
-set -e # exit on error
+set -ex # exit on error
 if [ "${GS_HOME}x" = "x" ] ; then
   echo "the GS_HOME environment variable needs to be defined"
   exit 1
@@ -77,7 +77,7 @@ while getopts ":fhp:z:tv:" OPT ; do
     f) force="true";;
     p) postFix="${OPTARG}";;
     t) todeImage="true";;
-    s) smalltalkCIPath="${OPTARG}";;
+    z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
