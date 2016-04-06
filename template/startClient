@@ -61,22 +61,28 @@ done
 shift $(($OPTIND - 1))
 
 clientName=$1
+imageName=${clientName}${postFix}
 
 if [ "$force" = "true" ] ; then
   $GS_TODE_CLIENT/bin/createPharoTodeClient -f -p $postFix $clientName
 fi
 
-if [ ! -e $scriptDir/todeClient${postFix}.image ] ; then
-  echo "The requested todeClient image: $scriptDir/todeClient${postFix}.image does not exist"
-  created="false"
-  while [ "$created" = "false" ] ; do
-    read -p "Do you wish to create todeClient${postFix}? [y/n]" yn
-    case $yn in
-      [Yy]* ) $GS_TODE_CLIENT/bin/createPharoTodeClient -f -p $postFix $clientName; created="true";;
-      [Nn]* ) exit 1;;
-      * ) echo "Please answer yes or no.";;
-    esac
-  done
+if [ ! -e $scriptDir/${imageName}.image ] ; then
+  if [ ! -e $scriptDir/todeClient${postFix} ] ; then
+    echo "The requested client image: $scriptDir/${imageName}.image does not exist"
+    created="false"
+    while [ "$created" = "false" ] ; do
+      read -p "Do you wish to create ${imageName}? [y/n]" yn
+      case $yn in
+        [Yy]* ) $GS_TODE_CLIENT/bin/createPharoTodeClient -f -p $postFix $clientName; created="true";;
+        [Nn]* ) exit 1;;
+        * ) echo "Please answer yes or no.";;
+      esac
+    done
+  else
+    # pre-existing old-style image
+    imageName=todeClient${postFix}
+  fi
 fi
 
 # Detect operating system
@@ -95,6 +101,6 @@ case "$PLATFORM" in
 esac
 
 unset GEMSTONE_NRS_ALL
-$pharoCmd $scriptDir/todeClient${postFix}.image &> $scriptDir/logs/todeClient${postFix}.log &
+$pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
 
 echo "...finished $(basename $0)"

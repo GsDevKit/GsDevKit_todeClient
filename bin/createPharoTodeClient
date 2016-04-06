@@ -100,10 +100,13 @@ if [ ! -e "$directoryPath/Pharo.image" ] ; then
   $GS_HOME/bin/private/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
-targetImageBasename=todeClient${postFix}
-
 message="create"
-if [ -e $directoryPath/${targetImageBasename}.image ] ; then
+imageName=${clientName}${postFix}
+if [ -e $directoryPath/todeClient${postFix}.image ] ; then
+  # old-style tode client
+  imageName="todeClient${postFix}"
+fi
+if [ -e $directoryPath/${imageName}.image ] ; then
   if [ "${force}x" = "x" ] ; then
     echo "client image already created, use -f to force update"
     exit 0
@@ -136,17 +139,17 @@ case "$PLATFORM" in
 esac
 
 if [ "${todeImage}" = "true" ] ; then
-  echo "${message} todeClient${postFix} image using $todeLoadPath"
+  echo "${message} ${imageName} image using $todeLoadPath"
 
   if [ "${force}" = "true" ] ; then
-    $pharoCmd $directoryPath/${targetImageBasename}.image save todeClientTmp
+    $pharoCmd $directoryPath/${imageName}.image save todeClientTmp
   else
     $pharoCmd $directoryPath/Pharo.image save todeClientTmp
   fi
 
   $pharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
-  $pharoCmd $directoryPath/todeClientTmp.image save $targetImageBasename
+  $pharoCmd $directoryPath/todeClientTmp.image save $imageName
 
   echo""
   rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
@@ -155,25 +158,26 @@ if [ "${todeImage}" = "true" ] ; then
 else
 
   if [ "${force}" = "true" ] ; then
-    $pharoCmd $directoryPath/${targetImageBasename}.image save clientTmp
+    $pharoCmd $directoryPath/${imageName}.image save clientTmp
   else
     $pharoCmd $directoryPath/Pharo.image save clientTmp
   fi
 
   if [ "${smalltalkCIPath}x" != "x" ] ; then
-    echo "${message} client${postFix} image using $smalltalkCIPath"
+    echo "${message} ${imageName} image using $smalltalkCIPath"
     $pharoCmd $directoryPath/clientTmp.image eval --save "
       [ Metacello new
           baseline: 'SmalltalkCI';
           repository: '${GS_SHARED_REPO_SMALLTALKCI}';
-          onConflict: [:ex | ex pass];
+          onConflict: [:ex | ex allow ];
+          onLock: [:ex | ex disallow ];
           load ] on: Warning do: [:w | w resume ].
       (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}'
     "
   else
-    echo "${message} client${postFix} image"
+    echo "${message} ${imageName} image"
   fi
-  $pharoCmd $directoryPath/clientTmp.image save $targetImageBasename
+  $pharoCmd $directoryPath/clientTmp.image save $imageName
 
   echo""
   rm -f $directoryPath/clientTmp.*  $directoryPath/*.zip
