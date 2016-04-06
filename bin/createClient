@@ -11,7 +11,7 @@ echo "================="
 usage() {
   cat <<HELP
 USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-t] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
-                      [-z <smalltalkCI-smalltalk.ston-path>]
+                      [ [-s <session-description-name>] [-z <smalltalkCI-smalltalk.ston-path>]]
                       <client-name>
 
 Create a client image of the given name. Used for running pharo-based 
@@ -28,6 +28,9 @@ OPTIONS
   -p <postfix>
      Append <postfix> to end of image name. Useful for creating
      multiple client images.
+  -s <session-description-name>
+     If -z option is specified, <session-description-name> is used to override the default session name
+     specified in the <smalltalkCI-smalltalk.ston-path> file.
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
@@ -45,6 +48,7 @@ EXAMPLES
   $(basename $0) -t -v Pharo3.0 todeDev
   $(basename $0) -t todeDev
   $(basename $0) -v Pharo5.0 -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -v Pharo5.0 -s gs_329 -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -f -v Pharo5.0 -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -v Pharo5.0 pharoClient
   $(basename $0) pharoClient
@@ -71,7 +75,8 @@ version="Pharo3.0"
 todeArg=""
 smalltalkCIArg=""
 debugArg=""
-while getopts ":fhp:z:tv:D" OPT ; do
+sessionNameArg=""
+while getopts ":fhp:z:tv:Ds:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
@@ -79,6 +84,7 @@ while getopts ":fhp:z:tv:D" OPT ; do
     t) todeArg=" -t ";;
     z) smalltalkCIArg=" -z  ${OPTARG} ";;
     v) version="${OPTARG}";;
+    s) sessionNameArg=" -s ${OPTARG} ";;
     D) debugArg=" -D ";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
@@ -92,7 +98,7 @@ clientName=$1
 
 case $version in
   Pharo*) 
-    $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIArg $debugArg $forceArg $postFixArg -v $version $clientName
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
     ;;
   *) usage; exit 1;;
 esac

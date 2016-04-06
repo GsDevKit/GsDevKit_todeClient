@@ -11,7 +11,7 @@ echo "================="
 usage() {
   cat <<HELP
 USAGE: $(basename $0) [-h] [-D] [-f] [-t] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
-                      [-z <smalltalkCI-smalltalk.ston-path>]
+                      [ [-s <session-description-name>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
 Create a client of the given name. Used for running pharo-based scripts
@@ -29,6 +29,9 @@ OPTIONS
   -p <postfix>
      Append <postfix> to end of image name. Useful for creating
      multiple client images.
+  -s <session-description-name>
+     If -z option is specified, <session-description-name> is used to override the default session name
+     specified in the <smalltalkCI-smalltalk.ston-path> file.
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
@@ -74,7 +77,8 @@ version="Pharo3.0"
 todeImage="false"
 smalltalkCIPath=""
 debugMode="false"
-while getopts ":fhp:z:tv:D" OPT ; do
+sessionName=""
+while getopts ":fhp:z:tv:Ds:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
@@ -82,6 +86,7 @@ while getopts ":fhp:z:tv:D" OPT ; do
     t) todeImage="true";;
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
+    s) sessionName="${OPTARG}";;
     D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
@@ -177,13 +182,20 @@ else
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
     $createPharoCmd $directoryPath/clientTmp.image eval --save "
-      [ Metacello new
+      [ | ci sessionName |
+      Metacello new
           baseline: 'SmalltalkCI';
           repository: '${GS_SHARED_REPO_SMALLTALKCI}';
           onConflict: [:ex | ex allow ];
           onLock: [:ex | ex disallow ];
           load ] on: Warning do: [:w | w resume ].
-      (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}'
+      ci := (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}'.
+      '${sessionName}' isEmpty
+        ifTrue: [ 
+          (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
+            configSpec sessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
+	ifFalse: [ sessionName := '${sessionName}' ].
+      (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
     "
   else
     echo "${message} ${imageName} image"
