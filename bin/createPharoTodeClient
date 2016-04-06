@@ -10,7 +10,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-t] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
+USAGE: $(basename $0) [-h] [-D] [-f] [-t] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
                       [-z <smalltalkCI-smalltalk.ston-path>]
                       <client-name>
 
@@ -36,6 +36,8 @@ OPTIONS
      Build a tODE client image
   -v Pharo3.0 | Pharo4.0
      Choose the version of Pharo to use for the client. Default is Pharo3.0.
+ -D
+     Create client using headful invocation for debugging creation errors.
 
 EXAMPLES
   $(basename $0) -h
@@ -71,7 +73,8 @@ force=""
 version="Pharo3.0"
 todeImage="false"
 smalltalkCIPath=""
-while getopts ":fhp:z:tv:" OPT ; do
+debugMode="false"
+while getopts ":fhp:z:tv:D" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
@@ -79,6 +82,7 @@ while getopts ":fhp:z:tv:" OPT ; do
     t) todeImage="true";;
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
+    D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
   esac
@@ -124,6 +128,7 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 case "$PLATFORM" in
   MSYS_NT*|MINGW32_NT*)
     pharoCmd="win_run_pharo $directoryPath --headless"
+    debugPharoCmd="$pharoCmd"
     todeLoadPath=$GS_SYS_DEFAULT/pharo/windows/todeLoad.st
     if [ -e $GS_SYS_LOCAL/pharo/windows/todeLoad.st ] ; then
       todeLoadPath=$GS_SYS_LOCAL/pharo/windows/todeLoad.st
@@ -131,12 +136,18 @@ case "$PLATFORM" in
     ;;
   *)
     pharoCmd="$directoryPath/pharo"
+    debugPharoCmd="$directoryPath/pharo-ui"
     todeLoadPath=$GS_SYS_DEFAULT/pharo/todeLoad.st
     if [ -e $GS_SYS_LOCAL/pharo/todeLoad.st ] ; then
       todeLoadPath=$GS_SYS_LOCAL/pharo/todeLoad.st
     fi
     ;;
 esac
+
+createPharoCmd=$pharoCmd
+if [ "$debugMode" = "true" ] ; then
+  createPharoCmd=$debugPharoCmd
+fi
 
 if [ "${todeImage}" = "true" ] ; then
   echo "${message} ${imageName} image using $todeLoadPath"
@@ -147,7 +158,7 @@ if [ "${todeImage}" = "true" ] ; then
     $pharoCmd $directoryPath/Pharo.image save todeClientTmp
   fi
 
-  $pharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
+  $createPharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
   $pharoCmd $directoryPath/todeClientTmp.image save $imageName
 
@@ -165,7 +176,7 @@ else
 
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
-    $pharoCmd $directoryPath/clientTmp.image eval --save "
+    $createPharoCmd $directoryPath/clientTmp.image eval --save "
       [ Metacello new
           baseline: 'SmalltalkCI';
           repository: '${GS_SHARED_REPO_SMALLTALKCI}';

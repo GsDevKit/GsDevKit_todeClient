@@ -10,7 +10,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-t] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
+USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-t] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
                       [-z <smalltalkCI-smalltalk.ston-path>]
                       <client-name>
 
@@ -35,6 +35,8 @@ OPTIONS
      Build a tODE client image
   -v Pharo3.0 | Pharo4.0 | Pharo5.0
      Choose the version of Smalltalk to use for the client. Default is Pharo3.0.
+  -D
+     Create client using headful invocation for debugging creation errors.
 
 EXAMPLES
   $(basename $0) -h
@@ -68,7 +70,8 @@ forceArg=""
 version="Pharo3.0"
 todeArg=""
 smalltalkCIArg=""
-while getopts ":fhp:z:tv:" OPT ; do
+debugArg=""
+while getopts ":fhp:z:tv:D" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
@@ -76,6 +79,7 @@ while getopts ":fhp:z:tv:" OPT ; do
     t) todeArg=" -t ";;
     z) smalltalkCIArg=" -z  ${OPTARG} ";;
     v) version="${OPTARG}";;
+    D) debugArg=" -D ";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
   esac
@@ -88,7 +92,7 @@ clientName=$1
 
 case $version in
   Pharo*) 
-    $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIArg $forceArg $postFixArg -v $version $clientName
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIArg $debugArg $forceArg $postFixArg -v $version $clientName
     ;;
   *) usage; exit 1;;
 esac
