@@ -68,7 +68,7 @@ if [ "$force" = "true" ] ; then
 fi
 
 if [ ! -e $scriptDir/${imageName}.image ] ; then
-  if [ ! -e $scriptDir/todeClient${postFix} ] ; then
+  if [ ! -e $scriptDir/todeClient${postFix}.image ] ; then
     echo "The requested client image: $scriptDir/${imageName}.image does not exist"
     created="false"
     while [ "$created" = "false" ] ; do
