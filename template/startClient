@@ -10,7 +10,9 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-p <postfix>] <client-name>
+USAGE: $(basename $0) [-h] [-f] [-p <postfix>] 
+                      [ [-s <session-description-name>] [-t] [-z <smalltalkCI-smalltalk.ston-path>] ]
+                      <client-name>
 
 Launch todeClient image.
 
@@ -22,6 +24,14 @@ OPTIONS
   -p <postfix>
      Launch the tode client image created with a matching postfix. If
      the tode client image does not exist, build it.
+  -s <session-description-name>
+     If -t option is specified, <session-description-name> is used to override the default session name
+     specified in the <smalltalkCI-smalltalk.ston-path> file.
+  -z <smalltalkCI-smalltalk.ston-path>
+     If -t option is specified, path to SmalltalkCI smalltalk.ston file. Sets the image-level default 
+     session name from the <smalltalkCI-smalltalk.ston-path> file and specifies the set of tests to run.
+  -t
+     Run the smalltalkCI tests specified in the  <smalltalkCI-smalltalk.ston-path> file.
 
 EXAMPLES
   $(basename $0) -h
@@ -50,11 +60,17 @@ echo "     Pharo STDOUT routed to: ${scriptDir}/logs/todeClient${postFix}.log"
 
 postFix=""
 force=""
-while getopts "fhp:" OPT ; do
+sessionName=""
+smalltalkCIPath=""
+runCITests="false"
+while getopts "fhp:s:z:t" OPT ; do
   case "$OPT" in
     f) force="true";;
     h) usage; exit 0 ;;
     p) postFix="${OPTARG}" ;;
+    s) sessionName="${OPTARG}";;
+    t) runCITests="true";;
+    z) smalltalkCIPath="${OPTARG}";;
     *) usage; exit 1 ;;
   esac
 done
@@ -91,9 +107,18 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 [ $PLATFORM = "Darwin-x86_64" ] && PLATFORM="Darwin-i386"
 
 case "$PLATFORM" in
-  Darwin-i386) pharoCmd="$scriptDir/pharo-ui " ;; 
-  Linux-x86_64) pharoCmd="$scriptDir/pharo-ui --textenc UTF-8" ;;
-  MSYS_NT*|MINGW32_NT*) pharoCmd="win_run_pharo $scriptDir " ;;
+  Darwin-i386) 
+    pharoCmd="$scriptDir/pharo-ui "
+    ciPharoCmd="$scriptDir/pharo "
+    ;; 
+  Linux-x86_64) 
+    pharoCmd="$scriptDir/pharo-ui --textenc UTF-8"
+    ciPharoCmd="$scriptDir/pharo "
+    ;;
+  MSYS_NT*|MINGW32_NT*) 
+    pharoCmd="win_run_pharo $scriptDir "
+    ciPharoCmd="win_run_pharo $scriptDir --headless "
+    ;;
   *)
     echo "unsupported platform: $PLATFORM"
     exit 1
@@ -101,6 +126,29 @@ case "$PLATFORM" in
 esac
 
 unset GEMSTONE_NRS_ALL
-$pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
+
+if [ "$runCITests" = "true" ] ; then 
+  if [ "${smalltalkCIPath}x" = "x" ] ; then
+    echo "Required -z option not specified"; usage; exit 1
+  fi
+  $ciPharoCmd $scriptDir/${imageName}.image eval "
+      | ci sessionName |
+      ci := SmalltalkCI platformClass basicNew
+        initialize;
+	readSTONSpec: '${smalltalkCIPath}'.
+      '${sessionName}' isEmpty
+        ifTrue: [ 
+          (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
+            configSpec sessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
+	ifFalse: [ sessionName := '${sessionName}' ].
+      SCIGemStoneServerConfigSpec defaultSessionName: sessionName.
+      ci testCI
+  "
+  if [ "${SMALLTALK_CI_BUILD:-}x" != "x" ] ; then
+    cp -f $scriptDir/*.xml ${SMALLTALK_CI_BUILD}
+  fi
+else
+  $pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
+fi
 
 echo "...finished $(basename $0)"
