@@ -11,7 +11,7 @@ echo "================="
 usage() {
   cat <<HELP
 USAGE: $(basename $0) [-h] [-f] [-p <postfix>] 
-                      [ [-s <session-description-name>] [-t] [-z <smalltalkCI-smalltalk.ston-path>] ]
+                      [ [-s <session-description-name>] [-t <test-suite-name>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
 Launch todeClient image.
@@ -30,8 +30,9 @@ OPTIONS
   -z <smalltalkCI-smalltalk.ston-path>
      If -t option is specified, path to SmalltalkCI smalltalk.ston file. Sets the image-level default 
      session name from the <smalltalkCI-smalltalk.ston-path> file and specifies the set of tests to run.
-  -t
-     Run the smalltalkCI tests specified in the  <smalltalkCI-smalltalk.ston-path> file.
+  -t <test-suite-name>
+     Run the smalltalkCI tests specified in the  <smalltalkCI-smalltalk.ston-path> file, using the 
+     specified <test-suite-name>.
 
 EXAMPLES
   $(basename $0) -h
@@ -62,14 +63,14 @@ postFix=""
 force=""
 sessionName=""
 smalltalkCIPath=""
-runCITests="false"
-while getopts "fhp:s:z:t" OPT ; do
+testSuiteName=""
+while getopts "fhp:s:z:t:" OPT ; do
   case "$OPT" in
     f) force="true";;
     h) usage; exit 0 ;;
     p) postFix="${OPTARG}" ;;
     s) sessionName="${OPTARG}";;
-    t) runCITests="true";;
+    t) testSuiteName="${OPTARG}";;
     z) smalltalkCIPath="${OPTARG}";;
     *) usage; exit 1 ;;
   esac
@@ -127,7 +128,7 @@ esac
 
 unset GEMSTONE_NRS_ALL
 
-if [ "$runCITests" = "true" ] ; then 
+if [ "${testSuiteName}x" != "x" ] ; then 
   if [ "${smalltalkCIPath}x" = "x" ] ; then
     echo "Required -z option not specified"; usage; exit 1
   fi
@@ -135,6 +136,7 @@ if [ "$runCITests" = "true" ] ; then
       | ci sessionName |
       ci := SmalltalkCI platformClass basicNew
         initialize;
+	suiteName: '$clientName';
 	readSTONSpec: '${smalltalkCIPath}'.
       '${sessionName}' isEmpty
         ifTrue: [ 
