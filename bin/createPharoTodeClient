@@ -11,7 +11,7 @@ echo "================="
 usage() {
   cat <<HELP
 USAGE: $(basename $0) [-h] [-D] [-f] [-t] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
-                      [ [-s <session-description-name>] [-z <smalltalkCI-smalltalk.ston-path>] ]
+                      [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
 Create a client of the given name. Used for running pharo-based scripts
@@ -32,6 +32,9 @@ OPTIONS
   -s <session-description-name>
      If -z option is specified, <session-description-name> is used to override the default session name
      specified in the <smalltalkCI-smalltalk.ston-path> file.
+  -y <project-path>
+     If the -z option is specified, <project-path> specifies the project directory to be used with the 
+     <smalltalkCI-smalltalk.ston-path> file.
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
@@ -44,16 +47,18 @@ OPTIONS
 
 EXAMPLES
   $(basename $0) -h
-  $(basename $0) -p _0 todeDev
-  $(basename $0) -f todeDev
-  $(basename $0) -v Pharo3.0 todeDev
-  $(basename $0)
-  $(basename $0) -v Pharo5.0 -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -f -v Pharo5.0 -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -v Pharo5.0 pharoClient
-  $(basename $0) pharoClient
-  $(basename $0) -p _0 pharoClient
+  $(basename $0) -t todeDev
+  $(basename $0) -t -p _0 todeDev
+  $(basename $0) -t -f todeDev
+  $(basename $0) -t -v Pharo3.0 todeDev
 
+  $(basename $0) -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -f -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -v Pharo5.0 
 
 HELP
 }
@@ -76,9 +81,10 @@ force=""
 version="Pharo3.0"
 todeImage="false"
 smalltalkCIPath=""
+smalltalkCIProjectPath=""
 debugMode="false"
 sessionName=""
-while getopts ":fhp:z:tv:Ds:" OPT ; do
+while getopts ":fhp:z:tv:Ds:y:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
@@ -87,6 +93,7 @@ while getopts ":fhp:z:tv:Ds:" OPT ; do
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     s) sessionName="${OPTARG}";;
+    y) smalltalkCIProjectPath="${OPTARG}";;
     D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
@@ -182,14 +189,20 @@ else
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
     $createPharoCmd $directoryPath/clientTmp.image eval --save "
-      [ | ci sessionName |
+      [ | ci sessionName projectPath |
       Metacello new
           baseline: 'SmalltalkCI';
           repository: '${GS_SHARED_REPO_SMALLTALKCI}';
           onConflict: [:ex | ex allow ];
           onLock: [:ex | ex disallow ];
           load ] on: Warning do: [:w | w resume ].
-      ci := (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}'.
+      projectPath := '$smalltalkCIProjectPath'.
+       ci := projectPath isEmpty
+        ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
+	ifFalse: [ 
+	  (Smalltalk at: #SmalltalkCI) 
+	    loadCIFor: '${smalltalkCIPath}'
+	    projectDirectory: projectPath ].
       '${sessionName}' isEmpty
         ifTrue: [ 
           (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
@@ -198,7 +211,7 @@ else
       (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
     "
   else
-    echo "${message} ${imageName} image"
+    echo "${imageName} image not updated --- update manually"
   fi
   $pharoCmd $directoryPath/clientTmp.image save $imageName
 
