@@ -25,8 +25,8 @@ OPTIONS
      Launch the tode client image created with a matching postfix. If
      the tode client image does not exist, build it.
   -s <session-description-name>
-     If -t option is specified, <session-description-name> is used to override the default session name
-     specified in the <smalltalkCI-smalltalk.ston-path> file.
+     Assume that client was created with -z option specified, use <session-description-name> to 
+     override the default session name specified in the original <smalltalkCI-smalltalk.ston-path> file.
   -z <smalltalkCI-smalltalk.ston-path>
      If -t option is specified, path to SmalltalkCI smalltalk.ston file. Sets the image-level default 
      session name from the <smalltalkCI-smalltalk.ston-path> file and specifies the set of tests to run.
@@ -150,7 +150,13 @@ if [ "${testSuiteName}x" != "x" ] ; then
     cp -f $scriptDir/*.xml ${SMALLTALK_CI_BUILD}
   fi
 else
-  $pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
+  if [ "${sessionName}x" != "x" ]; then
+    $pharoCmd $scriptDir/${imageName}.image eval "
+    SCIGemStoneServerConfigSpec defaultSessionName: '${sessionName}'.
+    " &> $scriptDir/logs/${imageName}.log &
+  else
+    $pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
+  fi
 fi
 
 echo "...finished $(basename $0)"

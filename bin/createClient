@@ -108,7 +108,7 @@ case $version in
   Pharo*) 
     $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
     ;;
-  *) usage; exit 1;;
+  *) echo "Unknown client version: $version"; usage; exit 1;;
 esac
 
 echo "...finished $(basename $0)"
