@@ -11,7 +11,7 @@ echo "================="
 usage() {
   cat <<HELP
 USAGE: $(basename $0) [-h] [-f] [-p <postfix>] 
-                      [ [-s <session-description-name>] [-t <test-suite-name>] [-z <smalltalkCI-smalltalk.ston-path>] ]
+                      [ [-s <session-description-name>] [-t <test-suite-name> [-r]] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
 Launch todeClient image.
@@ -33,6 +33,8 @@ OPTIONS
   -t <test-suite-name>
      Run the smalltalkCI tests specified in the  <smalltalkCI-smalltalk.ston-path> file, using the 
      specified <test-suite-name>.
+  -r
+     If -t option specified, display results of test run on stdout.
 
 EXAMPLES
   $(basename $0) -h
@@ -64,14 +66,18 @@ force=""
 sessionName=""
 smalltalkCIPath=""
 testSuiteName=""
-while getopts "fhp:s:z:t:" OPT ; do
+showCIResults="false"
+smalltalkCIArg=""
+postFixArg=""
+while getopts "fhp:s:z:t:r" OPT ; do
   case "$OPT" in
     f) force="true";;
     h) usage; exit 0 ;;
-    p) postFix="${OPTARG}" ;;
+    p) postFix="${OPTARG}"; postFixArg=" -p  ${OPTARG} ";;
     s) sessionName="${OPTARG}";;
     t) testSuiteName="${OPTARG}";;
-    z) smalltalkCIPath="${OPTARG}";;
+    r) showCIResults="true";;
+    z) smalltalkCIPath="${OPTARG}"; smalltalkCIArg=" -s ${OPTARG} ";;
     *) usage; exit 1 ;;
   esac
 done
@@ -81,7 +87,7 @@ clientName=$1
 imageName=${clientName}${postFix}
 
 if [ "$force" = "true" ] ; then
-  $GS_TODE_CLIENT/bin/createPharoTodeClient -f -p $postFix $clientName
+  $GS_TODE_CLIENT/bin/createPharoTodeClient -f $postFixArg $smalltalkCIArg $clientName
 fi
 
 if [ ! -e $scriptDir/${imageName}.image ] ; then
@@ -91,7 +97,7 @@ if [ ! -e $scriptDir/${imageName}.image ] ; then
     while [ "$created" = "false" ] ; do
       read -p "Do you wish to create ${imageName}? [y/n]" yn
       case $yn in
-        [Yy]* ) $GS_TODE_CLIENT/bin/createPharoTodeClient -f -p $postFix $clientName; created="true";;
+        [Yy]* ) $GS_TODE_CLIENT/bin/createPharoTodeClient -f $postFixArg $smalltalkCIArg $clientName; created="true";;
         [Nn]* ) exit 1;;
         * ) echo "Please answer yes or no.";;
       esac
@@ -148,6 +154,9 @@ if [ "${testSuiteName}x" != "x" ] ; then
   "
   if [ "${SMALLTALK_CI_BUILD:-}x" != "x" ] ; then
     cp -f $scriptDir/*.xml ${SMALLTALK_CI_BUILD}
+  fi
+  if [ "${showCIResults}" = "true" ] ; then
+    python "$GS_HOME/shared/repos/smalltalkCI/lib/junit_xml_prettfier.py" "$scriptDir"
   fi
 else
   if [ "${sessionName}x" != "x" ]; then
