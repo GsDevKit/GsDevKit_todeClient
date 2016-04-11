@@ -77,7 +77,7 @@ while getopts "fhp:s:z:t:r" OPT ; do
     s) sessionName="${OPTARG}";;
     t) testSuiteName="${OPTARG}";;
     r) showCIResults="true";;
-    z) smalltalkCIPath="${OPTARG}"; smalltalkCIArg=" -s ${OPTARG} ";;
+    z) smalltalkCIPath="${OPTARG}"; smalltalkCIArg=" -c -z ${OPTARG} ";;
     *) usage; exit 1 ;;
   esac
 done
