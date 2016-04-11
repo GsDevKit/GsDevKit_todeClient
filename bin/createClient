@@ -88,7 +88,7 @@ while getopts ":fhp:z:cv:Ds:y:" OPT ; do
     h) usage; exit 0;;
     f) forceArg=" -f ";;
     p) postFixArg=" -p ${OPTARG} ";;
-    c) clientArg=" -t ";;
+    c) clientArg=" -c ";;
     z) smalltalkCIArg=" -z ${OPTARG} ";;
     v) version="${OPTARG}";;
     s) sessionNameArg=" -s ${OPTARG} ";;
