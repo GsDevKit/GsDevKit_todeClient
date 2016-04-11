@@ -10,7 +10,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-D] [-f] [-t] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
+USAGE: $(basename $0) [-h] [-D] [-f] [-c] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
                       [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
@@ -38,8 +38,8 @@ OPTIONS
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
-  -t
-     Build a tODE client image
+  -c
+     Build a non-tODE client image
   -v Pharo3.0 | Pharo4.0
      Choose the version of Pharo to use for the client. Default is Pharo3.0.
  -D
@@ -47,18 +47,18 @@ OPTIONS
 
 EXAMPLES
   $(basename $0) -h
-  $(basename $0) -t todeDev
-  $(basename $0) -t -p _0 todeDev
-  $(basename $0) -t -f todeDev
-  $(basename $0) -t -v Pharo3.0 todeDev
+  $(basename $0) todeDev
+  $(basename $0) -p _0 todeDev
+  $(basename $0) -f todeDev
+  $(basename $0) -v Pharo3.0 todeDev
 
-  $(basename $0) -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
-  $(basename $0) -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
-  $(basename $0) -f -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
-  $(basename $0) -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -v Pharo5.0 
+  $(basename $0) -c -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -f -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -v Pharo5.0 
 
 HELP
 }
@@ -79,17 +79,17 @@ source ${GS_HOME}/bin/private/winRunPharoFunctions
 postFix=""
 force=""
 version="Pharo3.0"
-todeImage="false"
+clientImage="false"
 smalltalkCIPath=""
 smalltalkCIProjectPath=""
 debugMode="false"
 sessionName=""
-while getopts ":fhp:z:tv:Ds:y:" OPT ; do
+while getopts ":fhp:z:cv:Ds:y:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
     p) postFix="${OPTARG}";;
-    t) todeImage="true";;
+    c) clientImage="true";;
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     s) sessionName="${OPTARG}";;
@@ -161,7 +161,7 @@ if [ "$debugMode" = "true" ] ; then
   createPharoCmd=$debugPharoCmd
 fi
 
-if [ "${todeImage}" = "true" ] ; then
+if [ "${clientImage}" = "false" ] ; then
   echo "${message} ${imageName} image using $todeLoadPath"
 
   if [ "${force}" = "true" ] ; then

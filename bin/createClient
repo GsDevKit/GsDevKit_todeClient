@@ -10,7 +10,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-t] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
+USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-c] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
                       [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>]]
                       <client-name>
 
@@ -37,8 +37,8 @@ OPTIONS
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
-  -t
-     Build a tODE client image
+  -c
+     Build a non-tODE client image
   -v Pharo3.0 | Pharo4.0 | Pharo5.0
      Choose the version of Smalltalk to use for the client. Default is Pharo3.0.
   -D
@@ -46,19 +46,19 @@ OPTIONS
 
 EXAMPLES
   $(basename $0) -h
-  $(basename $0) -t -p _0 todeDev
-  $(basename $0) -f -t todeDev
-  $(basename $0) -t -v Pharo3.0 todeDev
-  $(basename $0) -t todeDev
-  $(basename $0) -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
-  $(basename $0) -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
-  $(basename $0) -f -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
-  $(basename $0) -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
-  $(basename $0) -v Pharo5.0 pharoClient
-  $(basename $0) pharoClient
-  $(basename $0) -p _0 pharoClient
+  $(basename $0) -p _0 todeDev
+  $(basename $0) -f todeDev
+  $(basename $0) -v Pharo3.0 todeDev
+  $(basename $0) todeDev
+  $(basename $0) -c -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -f -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -v Pharo5.0 pharoClient
+  $(basename $0) -c pharoClient
+  $(basename $0) -c -p _0 pharoClient
 
 HELP
 }
@@ -78,17 +78,17 @@ fi
 postFixArg=""
 forceArg=""
 version="Pharo3.0"
-todeArg=""
+clientArg=""
 smalltalkCIArg=""
 smalltalkCIProjectPathArg=""
 debugArg=""
 sessionNameArg=""
-while getopts ":fhp:z:tv:Ds:y:" OPT ; do
+while getopts ":fhp:z:cv:Ds:y:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
     p) postFixArg=" -p ${OPTARG} ";;
-    t) todeArg=" -t ";;
+    c) clientArg=" -t ";;
     z) smalltalkCIArg=" -z ${OPTARG} ";;
     v) version="${OPTARG}";;
     s) sessionNameArg=" -s ${OPTARG} ";;
@@ -106,7 +106,7 @@ clientName=$1
 
 case $version in
   Pharo*) 
-    $GS_TODE_CLIENT/bin/createPharoTodeClient $todeArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $clientArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
     ;;
   *) echo "Unknown client version: $version"; usage; exit 1;;
 esac
