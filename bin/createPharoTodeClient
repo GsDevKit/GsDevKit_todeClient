@@ -10,33 +10,55 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-f] [-p <postfix] [-v Pharo3.0 | Pharo4.0 ]
+USAGE: $(basename $0) [-h] [-D] [-f] [-c] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
+                      [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
-Create a tODE client of the given name. Used for running pharo-based scripts
+Create a client of the given name. Used for running pharo-based scripts
 and for running the tODE client UI.
 
-If the tODE client image already exists, the installation is skipped
+If the client image already exists, the installation is skipped
 unless the -f option is specified.
 
 OPTIONS
   -h 
      display help
   -f
-     Force tODE client installation, whether or not the image
+     Force client installation, whether or not the image
      already exists.
   -p <postfix>
      Append <postfix> to end of image name. Useful for creating
-     multiple tode client images.
+     multiple client images.
+  -s <session-description-name>
+     If -z option is specified, <session-description-name> is used to override the default session name
+     specified in the <smalltalkCI-smalltalk.ston-path> file.
+  -y <project-path>
+     If the -z option is specified, <project-path> specifies the project directory to be used with the 
+     <smalltalkCI-smalltalk.ston-path> file.
+  -z <smalltalkCI-smalltalk.ston-path>
+     Path to SmalltalkCI smalltalk.ston file which contains the load and optional
+     tests instructions for creating the image
+  -c
+     Build a non-tODE client image
   -v Pharo3.0 | Pharo4.0
      Choose the version of Pharo to use for the client. Default is Pharo3.0.
+ -D
+     Create client using headful invocation for debugging creation errors.
 
 EXAMPLES
   $(basename $0) -h
+  $(basename $0) todeDev
   $(basename $0) -p _0 todeDev
   $(basename $0) -f todeDev
   $(basename $0) -v Pharo3.0 todeDev
-  $(basename $0)
+
+  $(basename $0) -c -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -f -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
+  $(basename $0) -c -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
+  $(basename $0) -c -v Pharo5.0 
 
 HELP
 }
@@ -57,12 +79,22 @@ source ${GS_HOME}/bin/private/winRunPharoFunctions
 postFix=""
 force=""
 version="Pharo3.0"
-while getopts ":fhp:v:" OPT ; do
+clientImage="false"
+smalltalkCIPath=""
+smalltalkCIProjectPath=""
+debugMode="false"
+sessionName=""
+while getopts ":fhp:z:cv:Ds:y:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
     p) postFix="${OPTARG}";;
+    c) clientImage="true";;
+    z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
+    s) sessionName="${OPTARG}";;
+    y) smalltalkCIProjectPath="${OPTARG}";;
+    D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
     *) usage; exit 1;;
   esac
@@ -84,12 +116,15 @@ if [ ! -e "$directoryPath/Pharo.image" ] ; then
   $GS_HOME/bin/private/downloadSmalltalkClient -v $version -d $directoryPath
 fi
 
-targetImageBasename=todeClient${postFix}
-
 message="create"
-if [ -e $directoryPath/${targetImageBasename}.image ] ; then
+imageName=${clientName}${postFix}
+if [ -e $directoryPath/todeClient${postFix}.image ] ; then
+  # old-style tode client
+  imageName="todeClient${postFix}"
+fi
+if [ -e $directoryPath/${imageName}.image ] ; then
   if [ "${force}x" = "x" ] ; then
-    echo "todeClient image already created, use -f to force update"
+    echo "client image already created, use -f to force update"
     exit 0
   else
     message="update"
@@ -105,6 +140,7 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 case "$PLATFORM" in
   MSYS_NT*|MINGW32_NT*)
     pharoCmd="win_run_pharo $directoryPath --headless"
+    debugPharoCmd="$pharoCmd"
     todeLoadPath=$GS_SYS_DEFAULT/pharo/windows/todeLoad.st
     if [ -e $GS_SYS_LOCAL/pharo/windows/todeLoad.st ] ; then
       todeLoadPath=$GS_SYS_LOCAL/pharo/windows/todeLoad.st
@@ -112,6 +148,7 @@ case "$PLATFORM" in
     ;;
   *)
     pharoCmd="$directoryPath/pharo"
+    debugPharoCmd="$directoryPath/pharo-ui"
     todeLoadPath=$GS_SYS_DEFAULT/pharo/todeLoad.st
     if [ -e $GS_SYS_LOCAL/pharo/todeLoad.st ] ; then
       todeLoadPath=$GS_SYS_LOCAL/pharo/todeLoad.st
@@ -119,21 +156,68 @@ case "$PLATFORM" in
     ;;
 esac
 
-echo "${message} todeClient${postFix} image using $todeLoadPath"
-
-if [ "${force}" = "true" ] ; then
-  $pharoCmd $directoryPath/${targetImageBasename}.image save todeClientTmp
-else
-  $pharoCmd $directoryPath/Pharo.image save todeClientTmp
+createPharoCmd=$pharoCmd
+if [ "$debugMode" = "true" ] ; then
+  createPharoCmd=$debugPharoCmd
 fi
 
-$pharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
+if [ "${clientImage}" = "false" ] ; then
+  echo "${message} ${imageName} image using $todeLoadPath"
 
-$pharoCmd $directoryPath/todeClientTmp.image save $targetImageBasename
+  if [ "${force}" = "true" ] ; then
+    $pharoCmd $directoryPath/${imageName}.image save todeClientTmp
+  else
+    $pharoCmd $directoryPath/Pharo.image save todeClientTmp
+  fi
 
-echo""
-rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
+  $createPharoCmd $directoryPath/todeClientTmp.image st --quit --save $todeLoadPath
 
-$GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
+  $pharoCmd $directoryPath/todeClientTmp.image save $imageName
 
+  echo""
+  rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
+
+  $GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
+else
+
+  if [ "${force}" = "true" ] ; then
+    $pharoCmd $directoryPath/${imageName}.image save clientTmp
+  else
+    $pharoCmd $directoryPath/Pharo.image save clientTmp
+  fi
+
+  if [ "${smalltalkCIPath}x" != "x" ] ; then
+    echo "${message} ${imageName} image using $smalltalkCIPath"
+    $createPharoCmd $directoryPath/clientTmp.image eval --save "
+      [ | ci sessionName projectPath |
+      Metacello new
+          baseline: 'SmalltalkCI';
+          repository: '${GS_SHARED_REPO_SMALLTALKCI}';
+          onConflict: [:ex | ex allow ];
+          onLock: [:ex | ex disallow ];
+          load ] on: Warning do: [:w | w resume ].
+      projectPath := '$smalltalkCIProjectPath'.
+       ci := projectPath isEmpty
+        ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
+	ifFalse: [ 
+	  (Smalltalk at: #SmalltalkCI) 
+	    loadCIFor: '${smalltalkCIPath}'
+	    projectDirectory: projectPath ].
+      '${sessionName}' isEmpty
+        ifTrue: [ 
+          (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
+            configSpec sessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
+	ifFalse: [ sessionName := '${sessionName}' ].
+      (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
+    "
+  else
+    echo "${imageName} image not updated --- update manually"
+  fi
+  $pharoCmd $directoryPath/clientTmp.image save $imageName
+
+  echo""
+  rm -f $directoryPath/clientTmp.*  $directoryPath/*.zip
+
+  $GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
+fi
 echo "...finished $(basename $0)"

@@ -42,16 +42,19 @@ shift $(($OPTIND - 1))
 
 clientName=$1
 
-echo "	$clientName	tODE client"
+echo "	$clientName"
 
 scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 pushd $scriptDir >& /dev/null
  for fileName in $(find . -type f)
   do
-    if [[ "$fileName" = ./todeClient*.image ]] ; then
+    if [[ "$fileName" = ./${clientName}*.image ]] ; then
       imageName=`echo "$fileName" | cut -c 3-`
-      echo "	  $imageName"
+      echo "	  $imageName	(client)"
+    elif [[ "$fileName" = ./todeClient*.image ]] ; then
+      imageName=`echo "$fileName" | cut -c 3-`
+      echo "	  $imageName	(tode client)"
     fi
   done
 
