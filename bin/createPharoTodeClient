@@ -92,7 +92,7 @@ while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
     f) force="true";;
     p) postFix="${OPTARG}";;
     c) clientImage="true";;
-    l) clientImage="true"; lockMetacelloRepositories="true"
+    l) clientImage="true"; lockMetacelloRepositories="true";;
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     s) sessionName="${OPTARG}";;
