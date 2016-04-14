@@ -206,6 +206,10 @@ else
             load ]
 	ifFalse: [
           Metacello new
+            baseline: 'SmalltalkCI';
+            repository: '${GS_SHARED_REPO_SMALLTALKCI}';
+            lock.  "explicitly lock before loading GsDevKitClient"
+  	  Metacello new
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
             load: 'GsDevKitClient'.
