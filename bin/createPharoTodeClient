@@ -92,7 +92,7 @@ while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
     f) force="true";;
     p) postFix="${OPTARG}";;
     c) clientImage="true";;
-    l) clientImage="true"; lockMetacelloRepositories="true";;
+    l) clientImage="true"; lockMetacelloRepositories="lock Metacello Repositories";;
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     s) sessionName="${OPTARG}";;
@@ -193,30 +193,33 @@ else
     echo "${message} ${imageName} image using $smalltalkCIPath"
     $createPharoCmd $directoryPath/clientTmp.image eval --save "
       [ | ci sessionName projectPath |
+        Metacello new
+          baseline: 'Metacello';
+          repository: '${GS_SHARED_REPO_METACELLO}';
+          onConflict: [:ex | ex allow];
+	  load: #( 'batch' ).
       '${lockMetacelloRepositories}' isEmpty
         ifTrue: [
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
-            onConflict: [:ex | ex allow ];
-            onLock: [:ex | ex disallow ];
             load ]
 	ifFalse: [
           Metacello new
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
-            onConflict: [:ex | ex allow ];
-            onLock: [:ex | ex disallow ];
             load: 'GsDevKitClient'.
 	    (Smalltalk at: #GsDevKit_home) lockClientGsDevKitProjects ] ]
 	      on: Warning do: [:w | w resume ].
-      projectPath := '$smalltalkCIProjectPath'.
-       ci := projectPath isEmpty
-        ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
-	ifFalse: [ 
-	  (Smalltalk at: #SmalltalkCI) 
-	    loadCIFor: '${smalltalkCIPath}'
-	    projectDirectory: projectPath ].
+       projectPath := '$smalltalkCIProjectPath'.
+       [ ci := projectPath isEmpty
+           ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
+	   ifFalse: [ 
+	     (Smalltalk at: #SmalltalkCI) 
+	       loadCIFor: '${smalltalkCIPath}'
+	       projectDirectory: projectPath ] ]
+	         on: MetacelloAllowLockedProjectChange
+	         do: [:ex | ex disallow "honor"].
       '${sessionName}' isEmpty
         ifTrue: [ 
           (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
