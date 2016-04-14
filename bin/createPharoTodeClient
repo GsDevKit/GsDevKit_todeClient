@@ -198,6 +198,10 @@ else
           repository: '${GS_SHARED_REPO_METACELLO}';
           onConflict: [:ex | ex allow];
 	  load: #( 'batch' ).
+        Metacello new
+          baseline: 'Metacello';
+          repository: '${GS_SHARED_REPO_METACELLO}';
+	  lock. "unconditionally lock Metacello"
       '${lockMetacelloRepositories}' isEmpty
         ifTrue: [
           Metacello new
