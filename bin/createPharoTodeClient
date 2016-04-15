@@ -10,7 +10,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-D] [-f] [-c] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
+USAGE: $(basename $0) [-h] [-D] [-f] [-c|-l] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
                       [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
@@ -38,8 +38,8 @@ OPTIONS
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
-  -c
-     Build a non-tODE client image
+  -c|-l
+     Build a non-tODE client image. -l option indicates that Metacello repositories should be locked.
   -v Pharo3.0 | Pharo4.0
      Choose the version of Pharo to use for the client. Default is Pharo3.0.
  -D
@@ -60,6 +60,7 @@ EXAMPLES
   $(basename $0) -c -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -c -v Pharo5.0 
 
+  $(basename $0) -l -v Pharo5.0 -z \$GS_HOME/shared/repos/Tugrik/.smalltalk.ston
 HELP
 }
 
@@ -84,12 +85,14 @@ smalltalkCIPath=""
 smalltalkCIProjectPath=""
 debugMode="false"
 sessionName=""
-while getopts ":fhp:z:cv:Ds:y:" OPT ; do
+lockMetacelloRepositories=""
+while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
     p) postFix="${OPTARG}";;
     c) clientImage="true";;
+    l) clientImage="true"; lockMetacelloRepositories="lock Metacello Repositories";;
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     s) sessionName="${OPTARG}";;
@@ -190,23 +193,47 @@ else
     echo "${message} ${imageName} image using $smalltalkCIPath"
     $createPharoCmd $directoryPath/clientTmp.image eval --save "
       [ | ci sessionName projectPath |
-      Metacello new
-          baseline: 'SmalltalkCI';
-          repository: '${GS_SHARED_REPO_SMALLTALKCI}';
-          onConflict: [:ex | ex allow ];
-          onLock: [:ex | ex disallow ];
-          load ] on: Warning do: [:w | w resume ].
-      projectPath := '$smalltalkCIProjectPath'.
-       ci := projectPath isEmpty
-        ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
-	ifFalse: [ 
-	  (Smalltalk at: #SmalltalkCI) 
-	    loadCIFor: '${smalltalkCIPath}'
-	    projectDirectory: projectPath ].
+        Metacello new
+          baseline: 'Metacello';
+          repository: '${GS_SHARED_REPO_METACELLO}';
+          onConflict: [:ex | ex allow];
+	  load: #( 'batch' ).
+        Metacello new
+          baseline: 'Metacello';
+          repository: '${GS_SHARED_REPO_METACELLO}';
+	  lock. \"unconditionally lock Metacello\"
+      '${lockMetacelloRepositories}' isEmpty
+        ifTrue: [
+          Metacello new
+            baseline: 'SmalltalkCI';
+            repository: '${GS_SHARED_REPO_SMALLTALKCI}';
+            onConflict: [:ex | ex allow];
+            load ]
+	ifFalse: [
+          Metacello new
+            baseline: 'SmalltalkCI';
+            repository: '${GS_SHARED_REPO_SMALLTALKCI}';
+            lock.  \"explicitly lock before loading GsDevKitClient\"
+  	  Metacello new
+            baseline: 'TodeClient';
+            repository: '${GS_SHARED_REPO_TODE_CLIENT}';
+            onConflict: [:ex | ex allow];
+            load: 'GsDevKitClient'.
+	    (Smalltalk at: #GsDevKit_home) lockClientGsDevKitProjects ] ]
+	      on: Warning do: [:w | w resume ].
+       projectPath := '$smalltalkCIProjectPath'.
+       [ ci := projectPath isEmpty
+           ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
+	   ifFalse: [ 
+	     (Smalltalk at: #SmalltalkCI) 
+	       loadCIFor: '${smalltalkCIPath}'
+	       projectDirectory: projectPath ] ]
+	         on: MetacelloAllowLockedProjectChange
+	         do: [:ex | ex disallow \"honor\"].
       '${sessionName}' isEmpty
         ifTrue: [ 
           (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
-            configSpec sessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
+            configSpec defaultSessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
 	ifFalse: [ sessionName := '${sessionName}' ].
       (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
     "

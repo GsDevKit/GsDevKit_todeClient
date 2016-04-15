@@ -10,7 +10,7 @@ echo "================="
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-c] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
+USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-c|-l] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
                       [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>]]
                       <client-name>
 
@@ -37,8 +37,8 @@ OPTIONS
   -z <smalltalkCI-smalltalk.ston-path>
      Path to SmalltalkCI smalltalk.ston file which contains the load and optional
      tests instructions for creating the image
-  -c
-     Build a non-tODE client image
+  -c|-l
+     Build a non-tODE client image. -l option indicates that Metacello repositories should be locked.
   -v Pharo3.0 | Pharo4.0 | Pharo5.0
      Choose the version of Smalltalk to use for the client. Default is Pharo3.0.
   -D
@@ -83,12 +83,14 @@ smalltalkCIArg=""
 smalltalkCIProjectPathArg=""
 debugArg=""
 sessionNameArg=""
-while getopts ":fhp:z:cv:Ds:y:" OPT ; do
+lockMetacelloArg=""
+while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
     p) postFixArg=" -p ${OPTARG} ";;
     c) clientArg=" -c ";;
+    l) clientArg=" -c "; lockMetacelloArg=" -l ";;
     z) smalltalkCIArg=" -z ${OPTARG} ";;
     v) version="${OPTARG}";;
     s) sessionNameArg=" -s ${OPTARG} ";;
@@ -106,7 +108,7 @@ clientName=$1
 
 case $version in
   Pharo*) 
-    $GS_TODE_CLIENT/bin/createPharoTodeClient $clientArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $clientArg $lockMetacelloArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
     ;;
   *) echo "Unknown client version: $version"; usage; exit 1;;
 esac
