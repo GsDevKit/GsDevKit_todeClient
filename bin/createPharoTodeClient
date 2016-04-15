@@ -223,7 +223,7 @@ else
       '${sessionName}' isEmpty
         ifTrue: [ 
           (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
-            configSpec sessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
+            configSpec defaultSessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
 	ifFalse: [ sessionName := '${sessionName}' ].
       (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
     "
