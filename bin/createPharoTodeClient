@@ -207,6 +207,10 @@ else
           baseline: 'Metacello';
           repository: '${GS_SHARED_REPO_METACELLO}';
 	  lock. \"unconditionally lock Metacello\"
+        Metacello new
+          baseline: 'Ston';
+          repository: '${GS_SHARED_REPO_STON}';
+	  lock. \"unconditionally lock Ston\"
       '${loadGsDevKitClient}' isEmpty
         ifTrue: [
           \"If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI\"
