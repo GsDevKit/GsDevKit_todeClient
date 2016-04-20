@@ -189,11 +189,16 @@ else
     $pharoCmd $directoryPath/Pharo.image save clientTmp
   fi
 
+  loadGsDevKitClient=""
+  if [ -d "${GS_SHARED_REPO}/todeClient/GsDevKit-Structure.package" ] ; then
+    loadGsDevKitClient="load"
+  fi
+
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
     $createPharoCmd $directoryPath/clientTmp.image eval --save "
-      [ | ci sessionName projectPath |
-        Metacello new
+      | ci sessionName projectPath |
+      [  Metacello new
           baseline: 'Metacello';
           repository: '${GS_SHARED_REPO_METACELLO}';
           onConflict: [:ex | ex allow];
@@ -202,14 +207,20 @@ else
           baseline: 'Metacello';
           repository: '${GS_SHARED_REPO_METACELLO}';
 	  lock. \"unconditionally lock Metacello\"
-      '${lockMetacelloRepositories}' isEmpty
+        Metacello new
+          baseline: 'Ston';
+          repository: '${GS_SHARED_REPO_STON}';
+	  lock. \"unconditionally lock Ston\"
+      '${loadGsDevKitClient}' isEmpty
         ifTrue: [
+          \"If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI\"
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
             onConflict: [:ex | ex allow];
             load ]
-	ifFalse: [
+        ifFalse: [
+          \"If GsDevKitClient is present, lock SmalltalkCI and load GsDevKitClient\"
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
@@ -218,8 +229,9 @@ else
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
             onConflict: [:ex | ex allow];
-            load: 'GsDevKitClient'.
-	    (Smalltalk at: #GsDevKit_home) lockClientGsDevKitProjects ] ]
+            load: 'GsDevKitClient' ].
+      '${lockMetacelloRepositories}' isEmpty not
+        ifTrue: [ (Smalltalk at: #GsDevKit_home) lockClientGsDevKitProjects ] ]
 	      on: Warning do: [:w | w resume ].
        projectPath := '$smalltalkCIProjectPath'.
        [ ci := projectPath isEmpty
