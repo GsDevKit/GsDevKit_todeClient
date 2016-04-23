@@ -228,6 +228,7 @@ else
   	  Metacello new
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
+            lock;
             onConflict: [:ex | ex allow];
             load: 'GsDevKitClient' ].
       '${lockMetacelloRepositories}' isEmpty not
