@@ -1,12 +1,13 @@
 #! /bin/bash
 #=========================================================================
-# Copyright (c) 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+# Copyright (c) 2015,2016 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#
+#   MIT license: https://github.com/GsDevKit/GsDevKit_todeClient/blob/master/license.txt
 #=========================================================================
 
-echo "================="
-echo "   GsDevKit script: $(basename $0) $*"
-echo "              path: $0"
-echo "================="
+theArgs="$*"
+source ${GS_HOME}/bin/private/shFeedback
+start_banner
 
 usage() {
   cat <<HELP
@@ -64,16 +65,9 @@ EXAMPLES
 HELP
 }
 
-set -e # exit on error
-if [ "${GS_HOME}x" = "x" ] ; then
-  echo "the GS_HOME environment variable needs to be defined"
-  exit 1
-fi
 source ${GS_HOME}/bin/defGsDevKit.env
 if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
-  echo "the GsDevKit_todeClient project has not been installed correctly or the"
-  echo "GS_TODE_CLIENT environment variable has not been defined"
-  exit 1
+  exit_1_banner "the GsDevKit_todeClient project has not been installed correctly or the GS_TODE_CLIENT environment variable has not been defined"
 fi
 source ${GS_HOME}/bin/private/winRunPharoFunctions
 
@@ -99,13 +93,13 @@ while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
     y) smalltalkCIProjectPath="${OPTARG}";;
     D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
-    *) usage; exit 1;;
+    *) usage; exit_1_banner "Uknown option";;
   esac
 done
 shift $(($OPTIND - 1))
 
 if [ $# -lt 1 ]; then
-  usage; exit 1
+  usage; exit_1_banner "Missing required positional parameter"
 fi
 clientName=$1
 directoryPath=$GS_CLIENT_DEV_CLIENTS/$clientName
@@ -124,11 +118,14 @@ imageName=${clientName}${postFix}
 if [ -e $directoryPath/todeClient${postFix}.image ] ; then
   # old-style tode client
   imageName="todeClient${postFix}"
+else
+  if [ -e $directoryPath/${imageName}.image ] ; then
+    clientImage="true"
+  fi
 fi
 if [ -e $directoryPath/${imageName}.image ] ; then
   if [ "${force}x" = "x" ] ; then
-    echo "client image already created, use -f to force update"
-    exit 0
+    exit_0_banner "client image already created, use -f to force update"
   else
     message="update"
   fi
@@ -251,7 +248,7 @@ else
       (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
     "
   else
-    echo "${imageName} image not updated --- update manually"
+    exit_0_banner "${imageName} image not updated --- update manually"
   fi
   $pharoCmd $directoryPath/clientTmp.image save $imageName
 
@@ -260,4 +257,5 @@ else
 
   $GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
 fi
-echo "...finished $(basename $0)"
+
+exit_0_banner "...finished"
