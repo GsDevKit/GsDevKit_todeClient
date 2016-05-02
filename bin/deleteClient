@@ -38,4 +38,4 @@ clientName=$1
 
 rm -rf $GS_CLIENT_DEV_CLIENTS/$clientName
 
-exit_1_banner "...finished"
+exit_0_banner "...finished"

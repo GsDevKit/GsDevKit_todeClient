@@ -193,7 +193,7 @@ else
 
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
-    $createPharoCmd $directoryPath/clientTmp.image eval --save "
+    cat - > $directoryPath/customClientLoad.st << EOF
       | ci sessionName projectPath |
       [  Metacello new
           baseline: 'Metacello';
@@ -203,25 +203,25 @@ else
         Metacello new
           baseline: 'Metacello';
           repository: '${GS_SHARED_REPO_METACELLO}';
-	  lock. \"unconditionally lock Metacello\"
+	  lock. "unconditionally lock Metacello"
         Metacello new
           baseline: 'Ston';
           repository: '${GS_SHARED_REPO_STON}';
-	  lock. \"unconditionally lock Ston\"
+	  lock. "unconditionally lock Ston"
       '${loadGsDevKitClient}' isEmpty
         ifTrue: [
-          \"If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI\"
+          "If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI"
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
             onConflict: [:ex | ex allow];
             load ]
         ifFalse: [
-          \"If GsDevKitClient is present, lock SmalltalkCI and load GsDevKitClient\"
+          "If GsDevKitClient is present, lock SmalltalkCI and load GsDevKitClient"
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
-            lock.  \"explicitly lock before loading GsDevKitClient\"
+            lock.  "explicitly lock before loading GsDevKitClient"
   	  Metacello new
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
@@ -239,17 +239,20 @@ else
 	       loadCIFor: '${smalltalkCIPath}'
 	       projectDirectory: projectPath ] ]
 	         on: MetacelloAllowLockedProjectChange
-	         do: [:ex | ex disallow \"honor\"].
+	         do: [:ex | ex disallow "honor"].
       '${sessionName}' isEmpty
         ifTrue: [ 
           (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
             configSpec defaultSessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
 	ifFalse: [ sessionName := '${sessionName}' ].
       (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
-    "
+EOF
   else
-    exit_0_banner "${imageName} image not updated --- update manually"
+    if [ ! -e "$directoryPath/customClientLoad.st" ] ; then
+      exit_0_banner "${imageName} image not updated --- update manually"
+    fi
   fi
+  $createPharoCmd $directoryPath/clientTmp.image --quit --save $directoryPath/customClientLoad.st
   $pharoCmd $directoryPath/clientTmp.image save $imageName
 
   echo""
