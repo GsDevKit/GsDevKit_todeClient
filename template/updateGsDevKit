@@ -33,4 +33,4 @@ scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 ${GS_TODE_CLIENT}/bin/updateGsDevKit $scriptDir
 
-exit_0_bannter "...finished"
+exit_0_banner "...finished"
