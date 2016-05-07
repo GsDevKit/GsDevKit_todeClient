@@ -1,12 +1,13 @@
 #! /bin/bash
 #=========================================================================
-# Copyright (c) 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+# Copyright (c) 2015,2016 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#
+#   MIT license: https://github.com/GsDevKit/GsDevKit_todeClient/blob/master/license.txt
 #=========================================================================
 
-echo "================="
-echo "   GsDevKit script: $(basename $0) $*"
-echo "              path: $0"
-echo "================="
+theArgs="$*"
+source ${GS_HOME}/bin/private/shFeedback
+start_banner
 
 usage() {
   cat <<HELP
@@ -45,16 +46,9 @@ EXAMPLES
 HELP
 }
 
-set -e # exit on error
-if [ "${GS_HOME}x" = "x" ] ; then
-  echo "the GS_HOME environment variable needs to be defined"
-  exit 1
-fi
 source ${GS_HOME}/bin/defGsDevKit.env
 if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
-  echo "the GsDevKit_todeClient project has not been installed correctly or the"
-  echo "GS_TODE_CLIENT environment variable has not been defined"
-  exit 1
+  exit_1_banner "the GsDevKit_todeClient project has not been installed correctly or the GS_TODE_CLIENT environment variable has not been defined"
 fi
 source ${GS_HOME}/bin/private/winRunPharoFunctions
 
@@ -78,7 +72,7 @@ while getopts "fhp:s:z:t:r" OPT ; do
     t) testSuiteName="${OPTARG}";;
     r) showCIResults="true";;
     z) smalltalkCIPath="${OPTARG}"; smalltalkCIArg=" -c -z ${OPTARG} ";;
-    *) usage; exit 1 ;;
+    *) usage; exit_1_banner "Uknown option";;
   esac
 done
 shift $(($OPTIND - 1))
@@ -126,17 +120,14 @@ case "$PLATFORM" in
     pharoCmd="win_run_pharo $scriptDir "
     ciPharoCmd="win_run_pharo $scriptDir --headless "
     ;;
-  *)
-    echo "unsupported platform: $PLATFORM"
-    exit 1
-    ;;
+  *) exit_1_banner "unsupported platform: $PLATFORM" ;;
 esac
 
 unset GEMSTONE_NRS_ALL
 
 if [ "${testSuiteName}x" != "x" ] ; then 
   if [ "${smalltalkCIPath}x" = "x" ] ; then
-    echo "Required -z option not specified"; usage; exit 1
+    usage; exit_1_banner "Required -z option not specified"
   fi
   $ciPharoCmd $scriptDir/${imageName}.image eval "
       | ci sessionName |
@@ -168,4 +159,4 @@ else
   fi
 fi
 
-echo "...finished $(basename $0)"
+exit_0_banner "...finished"

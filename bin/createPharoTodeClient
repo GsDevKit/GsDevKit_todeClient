@@ -1,12 +1,13 @@
 #! /bin/bash
 #=========================================================================
-# Copyright (c) 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+# Copyright (c) 2015,2016 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#
+#   MIT license: https://github.com/GsDevKit/GsDevKit_todeClient/blob/master/license.txt
 #=========================================================================
 
-echo "================="
-echo "   GsDevKit script: $(basename $0) $*"
-echo "              path: $0"
-echo "================="
+theArgs="$*"
+source ${GS_HOME}/bin/private/shFeedback
+start_banner
 
 usage() {
   cat <<HELP
@@ -64,16 +65,9 @@ EXAMPLES
 HELP
 }
 
-set -e # exit on error
-if [ "${GS_HOME}x" = "x" ] ; then
-  echo "the GS_HOME environment variable needs to be defined"
-  exit 1
-fi
 source ${GS_HOME}/bin/defGsDevKit.env
 if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
-  echo "the GsDevKit_todeClient project has not been installed correctly or the"
-  echo "GS_TODE_CLIENT environment variable has not been defined"
-  exit 1
+  exit_1_banner "the GsDevKit_todeClient project has not been installed correctly or the GS_TODE_CLIENT environment variable has not been defined"
 fi
 source ${GS_HOME}/bin/private/winRunPharoFunctions
 
@@ -99,13 +93,13 @@ while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
     y) smalltalkCIProjectPath="${OPTARG}";;
     D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
-    *) usage; exit 1;;
+    *) usage; exit_1_banner "Uknown option";;
   esac
 done
 shift $(($OPTIND - 1))
 
 if [ $# -lt 1 ]; then
-  usage; exit 1
+  usage; exit_1_banner "Missing required positional parameter"
 fi
 clientName=$1
 directoryPath=$GS_CLIENT_DEV_CLIENTS/$clientName
@@ -124,11 +118,14 @@ imageName=${clientName}${postFix}
 if [ -e $directoryPath/todeClient${postFix}.image ] ; then
   # old-style tode client
   imageName="todeClient${postFix}"
+else
+  if [ -e $directoryPath/${imageName}.image ] ; then
+    clientImage="true"
+  fi
 fi
 if [ -e $directoryPath/${imageName}.image ] ; then
   if [ "${force}x" = "x" ] ; then
-    echo "client image already created, use -f to force update"
-    exit 0
+    exit_0_banner "client image already created, use -f to force update"
   else
     message="update"
   fi
@@ -196,7 +193,7 @@ else
 
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
-    $createPharoCmd $directoryPath/clientTmp.image eval --save "
+    cat - > $directoryPath/customClientLoad.st << EOF
       | ci sessionName projectPath |
       [  Metacello new
           baseline: 'Metacello';
@@ -206,28 +203,29 @@ else
         Metacello new
           baseline: 'Metacello';
           repository: '${GS_SHARED_REPO_METACELLO}';
-	  lock. \"unconditionally lock Metacello\"
+	  lock. "unconditionally lock Metacello"
         Metacello new
           baseline: 'Ston';
           repository: '${GS_SHARED_REPO_STON}';
-	  lock. \"unconditionally lock Ston\"
+	  lock. "unconditionally lock Ston"
       '${loadGsDevKitClient}' isEmpty
         ifTrue: [
-          \"If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI\"
+          "If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI"
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
             onConflict: [:ex | ex allow];
             load ]
         ifFalse: [
-          \"If GsDevKitClient is present, lock SmalltalkCI and load GsDevKitClient\"
+          "If GsDevKitClient is present, lock SmalltalkCI and load GsDevKitClient"
           Metacello new
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
-            lock.  \"explicitly lock before loading GsDevKitClient\"
+            lock.  "explicitly lock before loading GsDevKitClient"
   	  Metacello new
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
+            lock;
             onConflict: [:ex | ex allow];
             load: 'GsDevKitClient' ].
       '${lockMetacelloRepositories}' isEmpty not
@@ -241,17 +239,20 @@ else
 	       loadCIFor: '${smalltalkCIPath}'
 	       projectDirectory: projectPath ] ]
 	         on: MetacelloAllowLockedProjectChange
-	         do: [:ex | ex disallow \"honor\"].
+	         do: [:ex | ex disallow "honor"].
       '${sessionName}' isEmpty
         ifTrue: [ 
           (ci compatibleConfigurationsFor: #gemstoneClient) do: [:configSpec |
             configSpec defaultSessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
 	ifFalse: [ sessionName := '${sessionName}' ].
       (Smalltalk at: #SCIGemStoneServerConfigSpec) defaultSessionName: sessionName
-    "
+EOF
   else
-    echo "${imageName} image not updated --- update manually"
+    if [ ! -e "$directoryPath/customClientLoad.st" ] ; then
+      exit_0_banner "${imageName} image not updated --- update manually"
+    fi
   fi
+  $createPharoCmd $directoryPath/clientTmp.image --quit --save $directoryPath/customClientLoad.st
   $pharoCmd $directoryPath/clientTmp.image save $imageName
 
   echo""
@@ -259,4 +260,5 @@ else
 
   $GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
 fi
-echo "...finished $(basename $0)"
+
+exit_0_banner "...finished"

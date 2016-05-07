@@ -1,12 +1,13 @@
 #! /bin/bash
 #=========================================================================
-# Copyright (c) 2015 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+# Copyright (c) 2015,2016 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#
+#   MIT license: https://github.com/GsDevKit/GsDevKit_todeClient/blob/master/license.txt
 #=========================================================================
 
-echo "================="
-echo "   GsDevKit script: $(basename $0) $*"
-echo "              path: $0"
-echo "================="
+theArgs="$*"
+source ${GS_HOME}/bin/private/shFeedback
+start_banner
 
 usage() {
   cat <<HELP
@@ -23,10 +24,8 @@ EXAMPLES
 HELP
 }
 
-set -e # exit on error
 if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
-  echo "the GS_TODE_CLIENT environment variable needs to be defined"
-  exit 1
+  exit_1_banner "the GS_TODE_CLIENT environment variable needs to be defined"
 fi
 source ${GS_HOME}/bin/defGsDevKit.env
 
@@ -34,4 +33,4 @@ targetDir=$1
 
 cp -rf ${GS_TODE_CLIENT}/template/* $targetDir
 
-echo "...finished $(basename $0)"
+exit_0_banner "...finished"
