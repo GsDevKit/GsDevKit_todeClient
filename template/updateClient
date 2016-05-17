@@ -24,11 +24,16 @@ pushd $scriptDir >& /dev/null
   for imageName in $(find ./*.image -type f)
   do
     if [[ "$imageName" != ./Pharo.image ]] ; then
-      stripped=`echo "$imageName" | cut -c 13-`
-      postfix=${stripped%.*}
       postfixArg=""
-      if [ "${postfix}x" != "x" ] ; then
-        postfixArg="-p $postfix"
+      if [[ "$imageName" == todeClient_* ]] ; then
+        stripped=`echo "$imageName" | cut -c 12-`
+        postfix=${stripped%.*}
+        if [ "${postfix}x" != "x" ] ; then
+          postfixArg="-p $postfix"
+        fi
+      else
+	# a client image
+        postfixArg=" -c "
       fi
       $GS_TODE_CLIENT/bin/createClient -f $postfixArg $clientName
     fi
