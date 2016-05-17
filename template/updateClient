@@ -31,11 +31,22 @@ pushd $scriptDir >& /dev/null
         if [ "${postfix}x" != "x" ] ; then
           postfixArg="-p $postfix"
         fi
+        $GS_TODE_CLIENT/bin/createClient -f $postfixArg $clientName
       else
-	# a client image
-        postfixArg=" -c "
+	# client image ... if it matches the pattern
+	if [[ "$imageName" == ./${clientName}* ]] ; then
+          if [[ "$imageName" == ./${clientName}_* ]] ; then
+	    pattern="./${clientName}_"
+	    size=${#pattern}
+            stripped=`echo "$imageName" | cut -c ${size}-`
+            postfix=${stripped%.*}
+            if [ "${postfix}x" != "x" ] ; then
+              postfixArg="-p $postfix"
+            fi
+	  fi
+          $GS_TODE_CLIENT/bin/createClient -f -c $postfixArg $clientName
+	fi
       fi
-      $GS_TODE_CLIENT/bin/createClient -f $postfixArg $clientName
     fi
   done
 
