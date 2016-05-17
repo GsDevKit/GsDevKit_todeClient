@@ -25,8 +25,8 @@ pushd $scriptDir >& /dev/null
   do
     if [[ "$imageName" != ./Pharo.image ]] ; then
       postfixArg=""
-      if [[ "$imageName" == todeClient_* ]] ; then
-        stripped=`echo "$imageName" | cut -c 12-`
+      if [[ "$imageName" == ./todeClient_* ]] ; then
+        stripped=`echo "$imageName" | cut -c 13-`
         postfix=${stripped%.*}
         if [ "${postfix}x" != "x" ] ; then
           postfixArg="-p $postfix"
