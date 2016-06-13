@@ -115,7 +115,7 @@ case "$PLATFORM" in
     pharoCmd="$scriptDir/pharo-ui --textenc UTF-8"
     ciPharoCmd="$scriptDir/pharo "
     ;;
-  MSYS_NT*|MINGW32_NT*) 
+  MSYS_NT*|MINGW32_NT*|MINGW64_NT*) 
     pharoCmd="win_run_pharo $scriptDir "
     ciPharoCmd="win_run_pharo $scriptDir --headless "
     ;;

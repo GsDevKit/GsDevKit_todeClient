@@ -138,7 +138,7 @@ fi
 PLATFORM="`uname -sm | tr ' ' '-'`"
 
 case "$PLATFORM" in
-  MSYS_NT*|MINGW32_NT*)
+  MSYS_NT*|MINGW32_NT*|MINGW64_NT*)
     pharoCmd="win_run_pharo $directoryPath --headless"
     debugPharoCmd="$pharoCmd"
     todeLoadPath=$GS_SYS_DEFAULT/pharo/windows/todeLoad.st
