@@ -233,10 +233,10 @@ else
 	      on: Warning do: [:w | w resume ].
        projectPath := '$smalltalkCIProjectPath'.
        [ ci := projectPath isEmpty
-           ifTrue: [ (Smalltalk at: #SmalltalkCI) loadCIFor: '${smalltalkCIPath}' ]
+           ifTrue: [ (Smalltalk at: #SmalltalkCI) load: '${smalltalkCIPath}' ]
 	   ifFalse: [ 
 	     (Smalltalk at: #SmalltalkCI) 
-	       loadCIFor: '${smalltalkCIPath}'
+	       load: '${smalltalkCIPath}'
 	       projectDirectory: projectPath ] ]
 	         on: MetacelloAllowLockedProjectChange
 	         do: [:ex | ex disallow "honor"].

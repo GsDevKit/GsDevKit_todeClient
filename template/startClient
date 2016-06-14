@@ -141,7 +141,7 @@ if [ "${testSuiteName}x" != "x" ] ; then
             configSpec sessionName ifNotNil: [:sessName |  sessionName := sessName ]]]
 	ifFalse: [ sessionName := '${sessionName}' ].
       SCIGemStoneServerConfigSpec defaultSessionName: sessionName.
-      ci testCI
+      ci test
   "
   if [ "${SMALLTALK_CI_BUILD:-}x" != "x" ] ; then
     cp -f $scriptDir/*.xml ${SMALLTALK_CI_BUILD}
