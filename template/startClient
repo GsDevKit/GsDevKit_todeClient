@@ -53,7 +53,6 @@ fi
 source ${GS_HOME}/bin/private/winRunPharoFunctions
 
 scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-echo "     Pharo STDOUT routed to: ${scriptDir}/logs/todeClient${postFix}.log"
 
 postFix=""
 force=""
@@ -116,7 +115,7 @@ case "$PLATFORM" in
     pharoCmd="$scriptDir/pharo-ui --textenc UTF-8"
     ciPharoCmd="$scriptDir/pharo "
     ;;
-  MSYS_NT*|MINGW32_NT*) 
+  MSYS_NT*|MINGW32_NT*|MINGW64_NT*) 
     pharoCmd="win_run_pharo $scriptDir "
     ciPharoCmd="win_run_pharo $scriptDir --headless "
     ;;
@@ -150,12 +149,22 @@ if [ "${testSuiteName}x" != "x" ] ; then
     python "$GS_HOME/shared/repos/smalltalkCI/lib/junit_xml_prettfier.py" "$scriptDir"
   fi
 else
+  echo "Pharo STDOUT routed to: ${scriptDir}/logs/${imageName}.log"
   if [ "${sessionName}x" != "x" ]; then
     $pharoCmd $scriptDir/${imageName}.image eval "
     SCIGemStoneServerConfigSpec defaultSessionName: '${sessionName}'.
     " &> $scriptDir/logs/${imageName}.log &
+    pid=$!
   else
     $pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
+    pid=$!
+  fi
+  sleep 2
+  pharo_alive=`kill -0 $pid`
+  if [[ ${pharo_alive} -ne 0 ]] ; then
+    echo "Error starting client image ${imageName}"
+    cat $scriptDir/logs/${imageName}.log
+    exit 1
   fi
 fi
 
