@@ -124,12 +124,18 @@ esac
 
 unset GEMSTONE_NRS_ALL
 
+buildEnvironment="unknown"
+if [[ "${TRAVIS:-}" = "true" ]]; then
+  buildEnvironment="travis"
+fi
+
 if [ "${testSuiteName}x" != "x" ] ; then 
   if [ "${smalltalkCIPath}x" = "x" ] ; then
     usage; exit_1_banner "Required -z option not specified"
   fi
   $ciPharoCmd $scriptDir/${imageName}.image eval "
       | ci sessionName |
+      SmalltalkCI buildEnvironment: '${buildEnvironment}'.
       ci := SmalltalkCI platformClass basicNew
         initialize;
 	suiteName: '$clientName';
@@ -144,9 +150,6 @@ if [ "${testSuiteName}x" != "x" ] ; then
   "
   if [ "${SMALLTALK_CI_BUILD:-}x" != "x" ] ; then
     cp -f $scriptDir/*.xml ${SMALLTALK_CI_BUILD}
-  fi
-  if [ "${showCIResults}" = "true" ] ; then
-    python "$GS_HOME/shared/repos/smalltalkCI/lib/junit_xml_prettfier.py" "$scriptDir"
   fi
 else
   echo "Pharo STDOUT routed to: ${scriptDir}/logs/${imageName}.log"
