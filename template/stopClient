@@ -1,0 +1,86 @@
+#! /bin/bash
+#=========================================================================
+# Copyright (c) 2015,2016 GemTalk Systems, LLC <dhenrich@gemtalksystems.com>.
+#
+#   MIT license: https://github.com/GsDevKit/GsDevKit_todeClient/blob/master/license.txt
+#=========================================================================
+
+theArgs="$*"
+source ${GS_HOME}/bin/private/shFeedback
+start_banner
+
+usage() {
+  cat <<HELP
+USAGE: $(basename $0) [-h] [-f] [-p <postfix>] 
+                      [ [-s <session-description-name>] [-t <test-suite-name> [-r]] [-z <smalltalkCI-smalltalk.ston-path>] ]
+                      <client-name>
+
+Launch todeClient image.
+
+OPTIONS
+  -h 
+     display help
+  -p <postfix>
+     Launch the tode client image created with a matching postfix. If
+     the tode client image does not exist, build it.
+
+EXAMPLES
+  $(basename $0) -h
+  $(basename $0) tode # Stops all instances
+  $(basename $0) -p _0 tode # Stops instance running todeClient_0.image
+
+HELP
+}
+
+source ${GS_HOME}/bin/defGsDevKit.env
+if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
+  exit_1_banner "the GsDevKit_todeClient project has not been installed correctly or the GS_TODE_CLIENT environment variable has not been defined"
+fi
+source ${GS_HOME}/bin/private/winRunPharoFunctions
+
+scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+postFix=""
+while getopts "hp:" OPT ; do
+  case "$OPT" in
+    h) usage; exit 0 ;;
+    p) postFix="${OPTARG}" ;;
+    *) usage; exit_1_banner "Uknown option";;
+  esac
+done
+shift $(($OPTIND - 1))
+
+clientName=$1
+if [ -z $clientName ]; then
+  usage; exit_1_banner "Unspecified client name"
+fi
+imageName=${clientName}${postFix}
+
+if [ "$force" = "true" ] ; then
+  $GS_TODE_CLIENT/bin/createPharoTodeClient -f $postFixArg $smalltalkCIArg $clientName
+fi
+
+pidFiles=()
+if [ "${postFix}x" != "x" ]; then
+  pidFile="${scriptDir}/${imageName}.pid"
+  test -f $pidFile || exit_1_banner "Cannot find pid file $pidFile"
+  pidFiles=($pidFile)
+else
+  pidFiles=( $(ls -1 ${scriptDir}/${imageName}*.pid 2>/dev/null || echo "" ) )
+fi
+
+if [ ${#pidFiles[@]} -eq 0 ]; then
+  exit_0_banner "No running clients found"
+fi
+
+for pidFile in ${pidFiles[@]}; do
+  cat $pidFile | while read pid; do 
+    ps -jx | grep "[${pid:0:1}]${pid:1}" | cut -d " " -f 2 | while read p; do
+      kill -TERM $p || exit_1_banner "Cannot kill process with PID: $p"
+    done
+  done
+  rm -f $pidFile
+done
+
+
+exit_0_banner "...finished"

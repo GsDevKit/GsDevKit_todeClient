@@ -185,6 +185,9 @@ else
     echo "Error starting client image ${imageName}"
     cat $scriptDir/logs/${imageName}.log
     exit 1
+  else
+    test -f $scriptDir/${imageName}.pid && rm -f $scriptDir/${imageName}.pid
+    echo $pid > $scriptDir/${imageName}.pid
   fi
 fi
 
