@@ -56,9 +56,16 @@ if [ -z $clientName ]; then
 fi
 imageName=${clientName}${postFix}
 
-if [ "$force" = "true" ] ; then
-  $GS_TODE_CLIENT/bin/createPharoTodeClient -f $postFixArg $smalltalkCIArg $clientName
-fi
+# Detect operating system
+PLATFORM="`uname -sm | tr ' ' '-'`"
+# Macs with Core i7 use the same software as older Macs
+[ $PLATFORM = "Darwin-x86_64" ] && PLATFORM="Darwin-i386"
+
+sedOpts="-r"
+case "$PLATFORM" in
+	Darwin-i386)
+		sedOpts="-E" ;;
+esac
 
 pidFiles=()
 if [ "${postFix}x" != "x" ]; then
@@ -75,8 +82,8 @@ fi
 
 for pidFile in ${pidFiles[@]}; do
   cat $pidFile | while read pid; do 
-    ps -jx | grep "[${pid:0:1}]${pid:1}" | cut -d " " -f 2 | while read p; do
-      kill -TERM $p || exit_1_banner "Cannot kill process with PID: $p"
+    ps -o pid,ppid | grep "[${pid:0:1}]${pid:1}" | sed ${sedOpts} "s/^[^0-9]+//" | cut -d " " -f 1 | while read p; do
+      kill $p || exit_1_banner "Cannot kill process with PID: $p"
     done
   done
   rm -f $pidFile
