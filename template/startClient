@@ -36,12 +36,15 @@ OPTIONS
      specified <test-suite-name>.
   -r
      If -t option specified, display results of test run on stdout.
+  -n
+     Run headless
 
 EXAMPLES
   $(basename $0) -h
   $(basename $0) -f tode
   $(basename $0) tode
   $(basename $0) -p _0 tode # Launches the image named todeClient_0.image
+  $(basename $0) -n tode # Launches the image named todeClient_0.image headlessly
 
 HELP
 }
@@ -62,7 +65,9 @@ testSuiteName=""
 showCIResults="false"
 smalltalkCIArg=""
 postFixArg=""
-while getopts "fhp:s:z:t:r" OPT ; do
+headless="false"
+imageOptions=""
+while getopts "fhp:s:z:t:rn" OPT ; do
   case "$OPT" in
     f) force="true";;
     h) usage; exit 0 ;;
@@ -71,6 +76,7 @@ while getopts "fhp:s:z:t:r" OPT ; do
     t) testSuiteName="${OPTARG}";;
     r) showCIResults="true";;
     z) smalltalkCIPath="${OPTARG}"; smalltalkCIArg=" -c -z ${OPTARG} ";;
+    n) headless="true";;
     *) usage; exit_1_banner "Uknown option";;
   esac
 done
@@ -108,15 +114,29 @@ PLATFORM="`uname -sm | tr ' ' '-'`"
 
 case "$PLATFORM" in
   Darwin-i386) 
-    pharoCmd="$scriptDir/pharo-ui "
+    if [ ${headless} = "true" ]; then
+      pharoCmd="$scriptDir/pharo "
+      imageOptions="--no-quit"
+    else
+      pharoCmd="$scriptDir/pharo-ui "
+    fi
     ciPharoCmd="$scriptDir/pharo "
     ;; 
   Linux-x86_64) 
-    pharoCmd="$scriptDir/pharo-ui --textenc UTF-8"
+    if [ ${headless} = "true" ]; then
+      pharoCmd="$scriptDir/pharo "
+      imageOptions="--no-quit"
+    else
+      pharoCmd="$scriptDir/pharo-ui --textenc UTF-8"
+    fi
     ciPharoCmd="$scriptDir/pharo "
     ;;
   MSYS_NT*|MINGW32_NT*|MINGW64_NT*) 
-    pharoCmd="win_run_pharo $scriptDir "
+    if [ ${headless} = "true" ]; then
+      paroCmd="win_run_pharo $scriptDir --headless "
+    else
+      pharoCmd="win_run_pharo $scriptDir "
+    fi
     ciPharoCmd="win_run_pharo $scriptDir --headless "
     ;;
   *) exit_1_banner "unsupported platform: $PLATFORM" ;;
@@ -154,12 +174,12 @@ if [ "${testSuiteName}x" != "x" ] ; then
 else
   echo "Pharo STDOUT routed to: ${scriptDir}/logs/${imageName}.log"
   if [ "${sessionName}x" != "x" ]; then
-    $pharoCmd $scriptDir/${imageName}.image eval "
+    $pharoCmd $scriptDir/${imageName}.image ${imageOptions} eval "
     SCIGemStoneServerConfigSpec defaultSessionName: '${sessionName}'.
     " &> $scriptDir/logs/${imageName}.log &
     pid=$!
   else
-    $pharoCmd $scriptDir/${imageName}.image &> $scriptDir/logs/${imageName}.log &
+    $pharoCmd $scriptDir/${imageName}.image ${imageOptions} &> $scriptDir/logs/${imageName}.log &
     pid=$!
   fi
   sleep 2
@@ -168,6 +188,9 @@ else
     echo "Error starting client image ${imageName}"
     cat $scriptDir/logs/${imageName}.log
     exit 1
+  else
+    test -f $scriptDir/${imageName}.pid && rm -f $scriptDir/${imageName}.pid
+    echo $pid > $scriptDir/${imageName}.pid
   fi
 fi
 
