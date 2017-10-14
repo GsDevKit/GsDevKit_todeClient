@@ -191,19 +191,30 @@ else
     loadGsDevKitClient="load"
   fi
 
+  case "$version" in
+    Pharo3.0|Pharo4.0|Pharo5.0)
+      latestMetacello="true"
+      ;;
+    *)
+      latestMetacello=""
+      ;;
+  esac
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
     cat - > $directoryPath/customClientLoad.st << EOF
       | ci sessionName projectPath |
-      [  Metacello new
-          baseline: 'Metacello';
-          repository: '${GS_SHARED_REPO_METACELLO}';
-          onConflict: [:ex | ex allow];
-	  load: #( 'batch' ).
-        Metacello new
-          baseline: 'Metacello';
-          repository: '${GS_SHARED_REPO_METACELLO}';
-	  lock. "unconditionally lock Metacello"
+      [  
+      '${latestMetacello}' isEmpty
+        ifFalse: [
+          Metacello new
+            baseline: 'Metacello';
+            repository: '${GS_SHARED_REPO_METACELLO}';
+            onConflict: [:ex | ex allow];
+	    load: #( 'batch' ).
+          Metacello new
+            baseline: 'Metacello';
+            repository: '${GS_SHARED_REPO_METACELLO}';
+	    lock. "unconditionally lock Metacello" ].
         Metacello new
           baseline: 'Ston';
           repository: '${GS_SHARED_REPO_STON}';
