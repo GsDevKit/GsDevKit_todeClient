@@ -163,7 +163,10 @@ if [ "${testSuiteName}x" != "x" ] ; then
       ci test
   "
   if [ "${SMALLTALK_CI_BUILD:-}x" != "x" ] ; then
-    cp -f $scriptDir/*.xml ${SMALLTALK_CI_BUILD}
+    xml_files="${scriptDir}/"*.xml
+    if [[ $(ls  ${xml_files}  2> /dev/null) ]]; then
+      cp -f ${xml_files} ${SMALLTALK_CI_BUILD}
+    fi
   fi
   if [ "${showCIResults}" = "true" ] ; then
     python "$GS_HOME/shared/repos/smalltalkCI/lib/junit_xml_prettfier.py" "$scriptDir"
