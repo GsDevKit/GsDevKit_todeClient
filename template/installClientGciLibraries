@@ -11,20 +11,32 @@ start_banner
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] <gemstone-version>
+USAGE: $(basename $0) [-h] [-f] <gemstone-version>
 
 Notification that a new version of GemStone has been installed. Copy the GCI 
 libraries to the approprate place for the various clients
 
 OPTIONS
   -h display help
+  -f force update of GCI libraries ... overwrite if they already exist
 
 EXAMPLES
    $(basename $0) -h
    $(basename $0) 3.2.9
+   $(basename $0) -f 3.2.9
 
 HELP
 }
+
+forceOption=""
+while getopts "hf" OPT ; do
+  case "$OPT" in
+    h) usage; exit 0;;
+    f) forceOption=" -f ";;
+    *) usage; exit_1_banner "Uknown option";;
+  esac
+done
+shift $(($OPTIND - 1))
 
 if [ $# -ne 1 ]; then
   usage; exit_1_banner "Missing required positional parameter"
@@ -32,6 +44,6 @@ fi
 vers="$1"
 scriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-$GS_HOME/bin/private/installGci -d $scriptDir -t pharo $vers
+$GS_HOME/bin/private/installGci $forceOption -d $scriptDir -t pharo $vers
 
 exit_0_banner "...finished"
