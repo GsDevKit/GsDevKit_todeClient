@@ -76,7 +76,6 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
 fi
 source ${GS_HOME}/bin/private/winRunPharoFunctions
 
-set -x
 postFix=""
 force=""
 version="Pharo3.0"
@@ -280,5 +279,4 @@ EOF
   $GS_HOME/bin/private/scanProductsForInstallingGciLibs $gciLibArchArg $directoryPath
 fi
 
-set +x
 exit_0_banner "...finished"
