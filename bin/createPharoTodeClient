@@ -11,7 +11,7 @@ start_banner
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-D] [-f] [-c|-l] [-p <postfix] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
+USAGE: $(basename $0) [-h] [-D] [-f] [-c|-l] [-p <postfix] [-t 32 | 64 ] [-v Pharo3.0 | Pharo4.0 | Pharo5.0 ]
                       [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>] ]
                       <client-name>
 
@@ -33,6 +33,9 @@ OPTIONS
   -s <session-description-name>
      If -z option is specified, <session-description-name> is used to override the default session name
      specified in the <smalltalkCI-smalltalk.ston-path> file.
+	-t 32 | 64
+		 If the -t option is not specified the gci libraries are assumed to be 32 bit. 64 indicates that 
+		 64 bit gci libraries are needed
   -y <project-path>
      If the -z option is specified, <project-path> specifies the project directory to be used with the 
      <smalltalkCI-smalltalk.ston-path> file.
@@ -52,6 +55,7 @@ EXAMPLES
   $(basename $0) -p _0 todeDev
   $(basename $0) -f todeDev
   $(basename $0) -v Pharo3.0 todeDev
+  $(basename $0) -t 64 -v Pharo7.0 todeDev
 
   $(basename $0) -c -v Pharo5.0 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
   $(basename $0) -c -v Pharo5.0 -s gs_329 -z \$GS_HOME/shared/repos/GemStone-GCI/.smalltalk.ston
@@ -60,6 +64,7 @@ EXAMPLES
   $(basename $0) -c -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -c -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -c -v Pharo5.0 
+  $(basename $0) -c -t 64 -v Pharo7.0 
 
   $(basename $0) -l -v Pharo5.0 -z \$GS_HOME/shared/repos/Tugrik/.smalltalk.ston
 HELP
@@ -71,6 +76,7 @@ if [ "${GS_TODE_CLIENT}x" = "x" ] ; then
 fi
 source ${GS_HOME}/bin/private/winRunPharoFunctions
 
+set -x
 postFix=""
 force=""
 version="Pharo3.0"
@@ -80,7 +86,8 @@ smalltalkCIProjectPath=""
 debugMode="false"
 sessionName=""
 lockMetacelloRepositories=""
-while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
+gciLibArchArg=""
+while getopts ":fhp:z:cv:Ds:y:lt:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) force="true";;
@@ -90,6 +97,7 @@ while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
     z) smalltalkCIPath="${OPTARG}";;
     v) version="${OPTARG}";;
     s) sessionName="${OPTARG}";;
+		t) gciLibArchArg="-t ${OPTARG} ";;
     y) smalltalkCIProjectPath="${OPTARG}";;
     D) debugMode="true";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
@@ -177,7 +185,7 @@ if [ "${clientImage}" = "false" ] ; then
   echo""
   rm -f $directoryPath/todeClientTmp.*  $directoryPath/*.zip
 
-  $GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
+  $GS_HOME/bin/private/scanProductsForInstallingGciLibs $gciLibArchArg $directoryPath
 else
 
   if [ "${force}" = "true" ] ; then
@@ -269,7 +277,8 @@ EOF
   echo""
   rm -f $directoryPath/clientTmp.*  $directoryPath/*.zip
 
-  $GS_HOME/bin/private/scanProductsForInstallingGciLibs $directoryPath
+  $GS_HOME/bin/private/scanProductsForInstallingGciLibs $gciLibArchArg $directoryPath
 fi
 
+set +x
 exit_0_banner "...finished"
