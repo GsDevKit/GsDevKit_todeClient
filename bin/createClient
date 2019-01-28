@@ -11,7 +11,7 @@ start_banner
 
 usage() {
   cat <<HELP
-USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-c|-l] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
+USAGE: $(basename $0) [-h] [-D] [-f] [-p <postfix] [-c|-l] [-t 32 | 64 ] [-v Pharo3.0 | Pharo4.0 | Pharo5.0] 
                       [ [-s <session-description-name>] [-y <project-path>] [-z <smalltalkCI-smalltalk.ston-path>]]
                       <client-name>
 
@@ -32,6 +32,9 @@ OPTIONS
   -s <session-description-name>
      If -z option is specified, <session-description-name> is used to override the default session name
      specified in the <smalltalkCI-smalltalk.ston-path> file.
+	-t 32 | 64
+		 If the -t option is not specified the gci libraries are assumed to be 32 bit. 64 indicates that 
+		 64 bit gci libraries are needed
   -y <project-path>
      If the -z option is specified, <project-path> specifies the project directory to be used with the 
      <smalltalkCI-smalltalk.ston-path> file.
@@ -58,6 +61,7 @@ EXAMPLES
   $(basename $0) -c -v Pharo5.0 -s gs_329 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -c -f -v Pharo5.0 -y \$GS_HOME/shared/repos/GemStone-GCI -z \$GS_HOME/sys/local/pharo/pharoClient.ston pharoClient
   $(basename $0) -c -v Pharo5.0 pharoClient
+  $(basename $0) -c -t 64 -v Pharo7.0 pharoClient
   $(basename $0) -c pharoClient
   $(basename $0) -c -p _0 pharoClient
 
@@ -78,7 +82,8 @@ smalltalkCIProjectPathArg=""
 debugArg=""
 sessionNameArg=""
 lockMetacelloArg=""
-while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
+gciLibArchArg=""
+while getopts ":fhp:z:cv:Ds:y:lt:" OPT ; do
   case "$OPT" in
     h) usage; exit 0;;
     f) forceArg=" -f ";;
@@ -88,6 +93,7 @@ while getopts ":fhp:z:cv:Ds:y:l" OPT ; do
     z) smalltalkCIArg=" -z ${OPTARG} ";;
     v) version="${OPTARG}";;
     s) sessionNameArg=" -s ${OPTARG} ";;
+		t) gciLibArchArg=" -t ${OPTARG} ";;
     y) smalltalkCIProjectPathArg=" -y ${OPTARG} ";;
     D) debugArg=" -D ";;
     ?) postFixArg=" -p ";;          # handle optional -p argument "
@@ -102,7 +108,7 @@ clientName=$1
 
 case $version in
   Pharo*) 
-    $GS_TODE_CLIENT/bin/createPharoTodeClient $clientArg $lockMetacelloArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
+    $GS_TODE_CLIENT/bin/createPharoTodeClient $clientArg $gciLibArchArg $lockMetacelloArg $smalltalkCIProjectPathArg $smalltalkCIArg $debugArg $sessionNameArg $forceArg $postFixArg -v $version $clientName
     ;;
   *) usage; exit_1_banner "Unknown client version: $version";;
 esac
