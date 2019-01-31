@@ -209,7 +209,8 @@ else
   if [ "${smalltalkCIPath}x" != "x" ] ; then
     echo "${message} ${imageName} image using $smalltalkCIPath"
     cat - > $directoryPath/customClientLoad.st << EOF
-      | ci sessionName projectPath |
+      | ci sessionName projectPath pharoVersion |
+			pharoVersion := '${version}'.
       [  
       '${latestMetacello}' isEmpty
         ifFalse: [
@@ -217,15 +218,17 @@ else
             baseline: 'Metacello';
             repository: '${GS_SHARED_REPO_METACELLO}';
             onConflict: [:ex | ex allow];
-	    load: #( 'batch' ).
+	    			load: #( 'batch' ).
           Metacello new
             baseline: 'Metacello';
             repository: '${GS_SHARED_REPO_METACELLO}';
-	    lock. "unconditionally lock Metacello" ].
-        Metacello new
-          baseline: 'Ston';
-          repository: '${GS_SHARED_REPO_STON}';
-	  lock. "unconditionally lock Ston"
+	    			lock. "unconditionally lock Metacello" ].
+					(#('Pharo6.0' 'Pharo6.1' 'Pharo7.0') includes: pharoVersion)
+						ifFalse: [ 
+        			Metacello new
+          			baseline: 'Ston';
+          			repository: '${GS_SHARED_REPO_STON}';
+	  						lock. "unconditionally lock Ston" ].
       '${loadGsDevKitClient}' isEmpty
         ifTrue: [
           "If GsDevKitClient isn't present (GsDevKit_home not updated to latest), load only SmalltalkCI"
@@ -240,7 +243,7 @@ else
             baseline: 'SmalltalkCI';
             repository: '${GS_SHARED_REPO_SMALLTALKCI}';
             lock.  "explicitly lock before loading GsDevKitClient"
-  	  Metacello new
+  	  		Metacello new
             baseline: 'TodeClient';
             repository: '${GS_SHARED_REPO_TODE_CLIENT}';
             lock;
@@ -252,7 +255,7 @@ else
        projectPath := '$smalltalkCIProjectPath'.
        [ ci := projectPath isEmpty
            ifTrue: [ (Smalltalk at: #SmalltalkCI) load: '${smalltalkCIPath}' ]
-	   ifFalse: [ 
+	   	ifFalse: [ 
 	     (Smalltalk at: #SmalltalkCI) 
 	       load: '${smalltalkCIPath}'
 	       projectDirectory: projectPath ] ]
@@ -270,6 +273,7 @@ EOF
       exit_0_banner "${imageName} image not updated --- update manually"
     fi
   fi
+	rm -rf build_status.txt
   $createPharoCmd $directoryPath/clientTmp.image --quit --save $directoryPath/customClientLoad.st
   $pharoCmd $directoryPath/clientTmp.image save $imageName
 
